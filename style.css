@@ -15,7 +15,7 @@
   --red-soft: #fff0ee;
   --blue: #315f87;
   --blue-soft: #e9f1f8;
-  --shadow: 0 16px 48px rgba(23, 27, 24, 0.08);
+  --shadow: none;
 }
 
 * {
@@ -107,23 +107,13 @@ select {
 }
 
 .app {
-  display: grid;
-  grid-template-columns: 292px minmax(0, 1fr);
   min-height: calc(100vh - 62px);
 }
 
-.sidebar {
-  position: sticky;
-  top: 62px;
-  height: calc(100vh - 62px);
-  overflow: auto;
-  border-right: 1px solid var(--line);
-  background: var(--surface);
-  padding: 16px;
-}
-
 .workspace {
+  width: min(1240px, 100%);
   min-width: 0;
+  margin: 0 auto;
   padding: 18px;
 }
 
@@ -198,6 +188,20 @@ select {
 
 .panel-body {
   padding: 16px;
+}
+
+.workbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 0.9fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.quick-add-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
 }
 
 .form-banner {
@@ -289,9 +293,9 @@ select {
 
 .filter-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) repeat(6, minmax(112px, 1fr));
+  grid-template-columns: repeat(6, minmax(112px, 1fr));
   gap: 8px;
-  margin-top: 10px;
+  margin: 0;
 }
 
 .pill {
@@ -336,10 +340,10 @@ select {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  width: 100%;
+  min-width: 138px;
   border: 1px solid var(--line);
   background: #fff;
-  padding: 9px 10px;
+  padding: 8px 10px;
   color: var(--muted);
   text-align: left;
 }
@@ -367,6 +371,46 @@ select {
   min-width: 0;
 }
 
+.view-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.board-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 10px;
+}
+
+.advanced-filters {
+  border: 1px solid var(--line);
+  background: #fff;
+  margin-top: 10px;
+}
+
+.advanced-filters summary {
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.advanced-filters[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.advanced-filters .filter-grid {
+  padding: 12px;
+}
+
 .table-wrap {
   overflow: auto;
   border-top: 1px solid var(--line);
@@ -378,7 +422,7 @@ select {
 
 table {
   width: 100%;
-  min-width: 1080px;
+  min-width: 900px;
   border-collapse: collapse;
 }
 
@@ -449,6 +493,21 @@ tr[data-task-row].selected {
   font-size: 10px;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.chips.compact {
+  margin-top: 0;
+}
+
+.chips.compact .chip {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty-flags {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .chip.good {
@@ -717,18 +776,11 @@ label {
 }
 
 @media (max-width: 1180px) {
-  .app,
   .detail-main {
     grid-template-columns: 1fr;
   }
 
-  .sidebar {
-    position: static;
-    height: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
+  .workbar,
   .filter-grid,
   .summary-grid,
   .detail-grid,
@@ -738,19 +790,6 @@ label {
 }
 
 @media (max-width: 720px) {
-  .app {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .workspace {
-    order: 1;
-  }
-
-  .sidebar {
-    order: 2;
-  }
-
   .topbar {
     grid-template-columns: 1fr;
     padding: 12px;
@@ -764,6 +803,7 @@ label {
     padding: 12px;
   }
 
+  .quick-add-main,
   .tabs,
   .filter-grid,
   .summary-grid,
@@ -777,6 +817,10 @@ label {
 
   .filter-row {
     align-items: stretch;
+  }
+
+  .view-button {
+    width: 100%;
   }
 
   .btn,

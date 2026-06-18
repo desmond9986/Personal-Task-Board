@@ -26,41 +26,6 @@
     </header>
 
     <div class="app">
-      <aside class="sidebar">
-        <div class="sidebar-block">
-          <p class="section-label">Search</p>
-          <input id="taskSearch" class="input" data-search-input type="search" placeholder="Search title, ref, next action..." />
-        </div>
-
-        <div class="sidebar-block">
-          <p class="section-label">Quick add</p>
-          <div class="quick-add">
-            <input id="quickAddInput" class="input" type="text" placeholder="Rough task..." />
-            <button class="btn primary" type="button" data-action="quick-add">Add</button>
-          </div>
-        </div>
-
-        <div class="sidebar-block">
-          <p class="section-label">Saved views</p>
-          <div class="saved-views" id="quickFilters"></div>
-        </div>
-
-        <div class="sidebar-block">
-          <p class="section-label">Status counts</p>
-          <div class="state-grid" id="statusCounts"></div>
-        </div>
-
-        <div class="sidebar-block">
-          <p class="section-label">Current filter</p>
-          <p class="meta-line" id="filterSummary">All tasks</p>
-        </div>
-
-        <div class="sidebar-block">
-          <p class="section-label">Guardrails</p>
-          <p class="meta-line">Agents cannot self-assign. External ticket sync is config-gated and still needs an explicit current-session command.</p>
-        </div>
-      </aside>
-
       <main class="workspace">
         <nav class="tabs" aria-label="Task board sections">
           <button class="tab active" type="button" data-route-button="board">Board</button>
@@ -74,7 +39,7 @@
             <div class="panel-head">
               <div>
                 <h2 class="panel-title">Task ledger</h2>
-                <p class="panel-copy">Scan task state, discussion needs, agent help, references, and review evidence from the JSON source.</p>
+                <p class="panel-copy">Add a task, choose a view, then open the row that needs work.</p>
               </div>
               <div class="btn-row">
                 <button class="btn" type="button" data-action="clear-filters">Clear filters</button>
@@ -83,54 +48,64 @@
             </div>
 
             <div class="panel-body">
-              <div class="summary-grid" id="summaryCards"></div>
-              <div class="filter-row" style="margin-top: 14px;">
-                <div>
-                  <p class="section-label">Visible tasks</p>
-                  <p class="meta-line"><strong id="visibleCount">0</strong> of <span id="totalCount">0</span></p>
-                </div>
-                <div class="btn-row" id="inlineQuickFilters"></div>
-              </div>
-              <div class="filter-grid">
+              <div class="workbar">
                 <label>
                   Search
                   <input id="boardSearch" class="input" data-search-input type="search" placeholder="Title, ref, question, evidence..." />
                 </label>
-                <label>
-                  Status
-                  <select class="select" id="statusFilter"></select>
-                </label>
-                <label>
-                  Type
-                  <select class="select" id="typeFilter"></select>
-                </label>
-                <label>
-                  Priority
-                  <select class="select" id="priorityFilter"></select>
-                </label>
-                <label>
-                  Evidence
-                  <select class="select" id="evidenceFilter"></select>
-                </label>
-                <label>
-                  Sort
-                  <select class="select" id="sortBy">
-                    <option value="priority">Priority</option>
-                    <option value="targetDate">Target date</option>
-                    <option value="dueDate">Due date</option>
-                    <option value="updatedAt">Updated</option>
-                    <option value="status">Status</option>
-                    <option value="energy">Energy</option>
-                  </select>
-                </label>
-                <label>
-                  Direction
-                  <select class="select" id="sortDirection">
-                    <option value="desc">Desc</option>
-                    <option value="asc">Asc</option>
-                  </select>
-                </label>
+                <div class="quick-add-main">
+                  <label>
+                    Quick add
+                    <input id="quickAddInput" class="input" type="text" placeholder="Rough task..." />
+                  </label>
+                  <button class="btn primary" type="button" data-action="quick-add">Add</button>
+                </div>
               </div>
+              <div class="view-strip" id="quickFilters"></div>
+              <div class="board-meta-row">
+                <p class="meta-line"><strong id="visibleCount">0</strong> of <span id="totalCount">0</span> tasks</p>
+                <p class="meta-line" id="statusSummary">No status counts yet</p>
+                <p class="meta-line" id="filterSummary">All tasks</p>
+              </div>
+              <details class="advanced-filters">
+                <summary>Filters and sort</summary>
+                <div class="filter-grid">
+                  <label>
+                    Status
+                    <select class="select" id="statusFilter"></select>
+                  </label>
+                  <label>
+                    Type
+                    <select class="select" id="typeFilter"></select>
+                  </label>
+                  <label>
+                    Priority
+                    <select class="select" id="priorityFilter"></select>
+                  </label>
+                  <label>
+                    Evidence
+                    <select class="select" id="evidenceFilter"></select>
+                  </label>
+                  <label>
+                    Sort
+                    <select class="select" id="sortBy">
+                      <option value="priority">Priority</option>
+                      <option value="targetDate">Target date</option>
+                      <option value="dueDate">Due date</option>
+                      <option value="updatedAt">Updated</option>
+                      <option value="status">Status</option>
+                      <option value="energy">Energy</option>
+                    </select>
+                  </label>
+                  <label>
+                    Direction
+                    <select class="select" id="sortDirection">
+                      <option value="desc">Desc</option>
+                      <option value="asc">Asc</option>
+                    </select>
+                  </label>
+                </div>
+              </details>
             </div>
 
             <div class="table-wrap">
@@ -141,9 +116,7 @@
                     <th>Status</th>
                     <th>Next action</th>
                     <th>Target / due</th>
-                    <th>Reference</th>
-                    <th>Agent</th>
-                    <th>Evidence</th>
+                    <th>Flags</th>
                     <th>Action</th>
                   </tr>
                 </thead>

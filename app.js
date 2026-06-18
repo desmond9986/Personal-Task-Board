@@ -208,6 +208,11 @@
       .join(", ");
   }
 
+  function primaryRefText(task) {
+    const ref = (task.externalRefs || []).find((item) => item.id || item.label || item.url);
+    return ref ? ref.id || ref.label || ref.url : "";
+  }
+
   function taskAgentsText(task) {
     return (task.agents || [])
       .map((agent) => `${agent.role}:${agent.name}${agent.status ? `/${agent.status}` : ""}`)
@@ -363,32 +368,50 @@
 
   function renderSidebar() {
     const tasks = getTasks();
-    $("#quickFilters").innerHTML = config.views
-      .map((view) => {
-        const count = tasks.filter((task) => taskMatchesView(task, view.id)).length;
-        return `<button class="view-button ${state.quick === view.id ? "active" : ""}" type="button" data-quick="${escapeHtml(view.id)}"><strong>${escapeHtml(view.label)}</strong><span>${count}</span></button>`;
-      })
-      .join("");
+    const quickFilters = $("#quickFilters");
+    if (quickFilters) {
+      quickFilters.innerHTML = config.views
+        .map((view) => {
+          const count = tasks.filter((task) => taskMatchesView(task, view.id)).length;
+          return `<button class="view-button ${state.quick === view.id ? "active" : ""}" type="button" data-quick="${escapeHtml(view.id)}"><strong>${escapeHtml(view.label)}</strong><span>${count}</span></button>`;
+        })
+        .join("");
+    }
 
-    $("#inlineQuickFilters").innerHTML = config.views
-      .filter((view) => ["need-discussion", "blocked-waiting", "agent-help", "evidence-missing"].includes(view.id))
-      .map((view) => `<button class="pill ${state.quick === view.id ? "active" : ""}" type="button" data-quick="${escapeHtml(view.id)}">${escapeHtml(view.label)}</button>`)
-      .join("");
+    const inlineQuickFilters = $("#inlineQuickFilters");
+    if (inlineQuickFilters) {
+      inlineQuickFilters.innerHTML = config.views
+        .filter((view) => ["need-discussion", "blocked-waiting", "agent-help", "evidence-missing"].includes(view.id))
+        .map((view) => `<button class="pill ${state.quick === view.id ? "active" : ""}" type="button" data-quick="${escapeHtml(view.id)}">${escapeHtml(view.label)}</button>`)
+        .join("");
+    }
 
     const statusCounts = Object.fromEntries(config.options.statuses.map((status) => [status, 0]));
     tasks.forEach((task) => {
       statusCounts[task.status] = (statusCounts[task.status] || 0) + 1;
     });
 
-    $("#statusCounts").innerHTML = [
-      ["all", tasks.length],
-      ...config.options.statuses.map((status) => [status, statusCounts[status] || 0])
-    ]
-      .map(([status, count]) => {
-        const active = state.filters.status === status || (status === "all" && state.filters.status === "all");
-        return `<button class="state-card ${active ? "active" : ""}" type="button" data-status-count="${escapeHtml(status)}"><strong>${count}</strong><span>${escapeHtml(statusLabel(status))}</span></button>`;
-      })
-      .join("");
+    const statusSummary = $("#statusSummary");
+    if (statusSummary) {
+      const nonZeroCounts = config.options.statuses
+        .map((status) => [statusLabel(status), statusCounts[status] || 0])
+        .filter(([, count]) => count > 0)
+        .map(([label, count]) => `${label} ${count}`);
+      statusSummary.textContent = nonZeroCounts.length ? `Status: ${nonZeroCounts.join(" · ")}` : "Status: no tasks";
+    }
+
+    const statusCountsPanel = $("#statusCounts");
+    if (statusCountsPanel) {
+      statusCountsPanel.innerHTML = [
+        ["all", tasks.length],
+        ...config.options.statuses.map((status) => [status, statusCounts[status] || 0])
+      ]
+        .map(([status, count]) => {
+          const active = state.filters.status === status || (status === "all" && state.filters.status === "all");
+          return `<button class="state-card ${active ? "active" : ""}" type="button" data-status-count="${escapeHtml(status)}"><strong>${count}</strong><span>${escapeHtml(statusLabel(status))}</span></button>`;
+        })
+        .join("");
+    }
 
     const view = config.views.find((item) => item.id === state.quick);
     const filterParts = [view?.label || "All tasks"];
@@ -397,16 +420,19 @@
     });
     if (state.query) filterParts.push(`search: "${state.query}"`);
     filterParts.push(`sort: ${state.sortBy} ${state.sortDirection}`);
-    $("#filterSummary").textContent = filterParts.join(" · ");
+    const filterSummary = $("#filterSummary");
+    if (filterSummary) filterSummary.textContent = filterParts.join(" · ");
   }
 
   function renderSummary(filtered) {
+    const summaryCards = $("#summaryCards");
+    if (!summaryCards) return;
     const tasks = getTasks();
     const needDiscussion = tasks.filter((task) => task.status === "need_discussion").length;
     const missingEvidence = tasks.filter((task) => task.evidence?.state === "missing").length;
     const agentHelp = tasks.filter((task) => task.agentHelp?.wanted).length;
 
-    $("#summaryCards").innerHTML = [
+    summaryCards.innerHTML = [
       ["Visible tasks", filtered.length, "After current filters and search."],
       ["Need discussion", needDiscussion, "Requires manager, BE, QA, policy, or self clarification."],
       ["Evidence missing", missingEvidence, "Done/review tasks should eventually capture useful evidence."],
@@ -416,17 +442,19 @@
       .join("");
   }
 
-  function refsHtml(refs = []) {
-    if (!refs.length) return "none";
-    return refs
-      .map((ref) => {
-        const label = escapeHtml(ref.id || ref.label || ref.url || "ref");
-        if (ref.url && /^https?:\/\//.test(ref.url)) {
-          return `<a class="mono" href="${escapeHtml(ref.url)}" target="_blank" rel="noreferrer">${label}</a>`;
-        }
-        return `<span class="mono">${label}</span>`;
-      })
-      .join("<br />");
+  function flagsHtml(task) {
+    const agents = taskAgentsText(task);
+    const questionCount = task.questions?.length || 0;
+    const evidenceState = task.evidence?.state || "missing";
+    return [
+      ["urgent", "high"].includes(task.priority) ? `<span class="chip ${chipClass(task.priority)}">${escapeHtml(task.priority)}</span>` : "",
+      ["missing", "later"].includes(evidenceState) ? `<span class="chip ${chipClass(evidenceState)}">evidence: ${escapeHtml(evidenceState)}</span>` : "",
+      task.agentHelp?.wanted ? '<span class="chip good">agent help</span>' : "",
+      agents ? `<span class="chip" title="${escapeHtml(agents)}">agent assigned</span>` : "",
+      questionCount ? `<span class="chip warn">${questionCount} question${questionCount === 1 ? "" : "s"}</span>` : ""
+    ]
+      .filter(Boolean)
+      .join("") || '<span class="empty-flags">none</span>';
   }
 
   function renderTable(filtered) {
@@ -437,24 +465,17 @@
     $("#taskRows").innerHTML = filtered
       .map((task) => {
         const selected = task.id === state.selectedId ? "selected" : "";
-        const agents = task.agents?.length ? taskAgentsText(task) : "none";
+        const primaryRef = primaryRefText(task);
         return `
           <tr class="${selected}" data-task-row="${escapeHtml(task.id)}">
             <td>
               <p class="task-title">${escapeHtml(task.title)}</p>
-              <div class="task-sub">${escapeHtml(task.id)} · ${escapeHtml(task.type)}</div>
-              <div class="chips">
-                <span class="chip ${chipClass(task.priority)}">${escapeHtml(task.priority)}</span>
-                <span class="chip">${escapeHtml(task.energy)} energy</span>
-                ${task.agentHelp?.wanted ? '<span class="chip good">agent help</span>' : ""}
-              </div>
+              <div class="task-sub">${escapeHtml(task.id)} · ${escapeHtml(task.type)}${primaryRef ? ` · ${escapeHtml(primaryRef)}` : ""}</div>
             </td>
-            <td><span class="status"><span class="dot ${escapeHtml(task.status)}"></span>${escapeHtml(task.status)}</span></td>
+            <td><span class="status"><span class="dot ${escapeHtml(task.status)}"></span>${escapeHtml(statusLabel(task.status))}</span></td>
             <td>${escapeHtml(nextActionLabel(task))}</td>
             <td><span class="mono">${escapeHtml(targetDueLabel(task)).replaceAll("\n", "<br />")}</span></td>
-            <td>${refsHtml(task.externalRefs)}</td>
-            <td>${escapeHtml(agents)}</td>
-            <td><span class="chip ${chipClass(task.evidence?.state)}">${escapeHtml(task.evidence?.state || "missing")}</span></td>
+            <td><div class="chips compact">${flagsHtml(task)}</div></td>
             <td><button class="btn" type="button" data-open-detail="${escapeHtml(task.id)}">Open detail</button></td>
           </tr>
         `;
@@ -466,23 +487,20 @@
   function renderMobileCards(filtered) {
     $("#mobileTaskCards").innerHTML = filtered
       .map((task) => {
-        const agents = task.agents?.length ? taskAgentsText(task) : "none";
+        const primaryRef = primaryRefText(task);
         return `
           <article class="mobile-task-card" data-task-row="${escapeHtml(task.id)}">
             <p class="task-title">${escapeHtml(task.title)}</p>
-            <div class="task-sub">${escapeHtml(task.id)} · ${escapeHtml(task.type)}</div>
+            <div class="task-sub">${escapeHtml(task.id)} · ${escapeHtml(task.type)}${primaryRef ? ` · ${escapeHtml(primaryRef)}` : ""}</div>
             <div class="chips">
-              <span class="status"><span class="dot ${escapeHtml(task.status)}"></span>${escapeHtml(task.status)}</span>
+              <span class="status"><span class="dot ${escapeHtml(task.status)}"></span>${escapeHtml(statusLabel(task.status))}</span>
               <span class="chip ${chipClass(task.priority)}">${escapeHtml(task.priority)}</span>
               <span class="chip ${chipClass(task.evidence?.state)}">${escapeHtml(task.evidence?.state || "missing")}</span>
               ${task.agentHelp?.wanted ? '<span class="chip good">agent help</span>' : ""}
             </div>
             <div class="mobile-task-meta">
               <div><strong>Next:</strong> ${escapeHtml(nextActionLabel(task))}</div>
-              <div><strong>Target:</strong> <span class="mono">${escapeHtml(task.targetDate || "none")}</span></div>
-              <div><strong>Due:</strong> <span class="mono">${escapeHtml(task.dueDate || "none")}</span></div>
-              <div><strong>Ref:</strong> ${escapeHtml(taskRefsText(task) || "none")}</div>
-              <div><strong>Agent:</strong> ${escapeHtml(agents)}</div>
+              <div><strong>Date:</strong> <span class="mono">${escapeHtml(task.targetDate || "none")}</span> target · <span class="mono">${escapeHtml(task.dueDate || "none")}</span> due</div>
             </div>
             <div class="btn-row" style="margin-top: 10px;">
               <button class="btn" type="button" data-open-detail="${escapeHtml(task.id)}">Open detail</button>

@@ -1311,3 +1311,26 @@ Applied direction:
 - include overdue target dates in `Target soon`
 - add mobile empty state
 - add an agent pickup prompt template without letting agents self-assign
+
+## 41. Board UX Simplification
+
+Date: 2026-06-18.
+
+Desmond said the dashboard became too fancy, too dense, and hard to use. The board should feel like a simple local work surface, not a reporting dashboard.
+
+Locked adjustment:
+
+- remove the left sidebar from the board
+- remove summary metric cards from the first screen
+- keep one search field and one quick-add field at the top of the board
+- keep saved-view counts, but present them as compact view buttons
+- keep status counts as one plain text line, not a card grid
+- collapse detailed status/type/priority/evidence/sort controls under `Filters and sort`
+- reduce the table to task, status, next action, target/due, flags, and action
+- show the primary real ticket/reference id in the task subtitle when present
+- use flags only for attention signals such as urgent/high priority, missing/later evidence, agent help, assigned agent, and questions
+
+Future agent guardrail:
+
+- do not re-add dashboard cards, a sidebar, or repeated filter controls unless Desmond explicitly asks for a reporting dashboard view
+- prefer fewer always-visible elements and move secondary metadata into task detail
