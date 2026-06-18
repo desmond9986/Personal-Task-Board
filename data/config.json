@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "ownerName": "Desmond",
+  "options": {
+    "statuses": ["backlog", "todo", "in_progress", "need_discussion", "blocked", "waiting", "review", "done", "dropped"],
+    "types": ["personal", "work_ticket", "learning", "agent_workflow", "career_review", "admin"],
+    "priorities": ["low", "medium", "high", "urgent"],
+    "energies": ["low", "medium", "high"],
+    "evidenceStates": ["missing", "later", "not_due", "captured"]
+  },
+  "sync": {
+    "externalTicketSyncEnabled": false,
+    "ticketSystemProvider": "unknown",
+    "mcpPreferred": true,
+    "browserFallback": true,
+    "frequency": "manual"
+  },
+  "sensitiveDataPolicy": {
+    "defaultMode": "sanitized_by_default",
+    "localPrivateDetailsAllowed": false,
+    "warning": "Do not add customer data, secrets, tokens, logs, screenshots, proprietary code, or confidential roadmap unless this repo is confirmed private and excluded from deploy/git."
+  },
+  "views": [
+    {
+      "id": "all",
+      "label": "All tasks",
+      "filter": {}
+    },
+    {
+      "id": "target-soon",
+      "label": "Target soon",
+      "filter": {
+        "targetSoonDays": 14,
+        "excludeStatus": ["done", "dropped"]
+      }
+    },
+    {
+      "id": "need-discussion",
+      "label": "Need discussion",
+      "filter": {
+        "status": ["need_discussion"]
+      }
+    },
+    {
+      "id": "blocked-waiting",
+      "label": "Blocked / waiting",
+      "filter": {
+        "status": ["blocked", "waiting"]
+      }
+    },
+    {
+      "id": "agent-help",
+      "label": "Agent help",
+      "filter": {
+        "agentHelpWanted": true
+      }
+    },
+    {
+      "id": "review",
+      "label": "Review / QA",
+      "filter": {
+        "status": ["review"]
+      }
+    },
+    {
+      "id": "evidence-missing",
+      "label": "Evidence missing",
+      "filter": {
+        "evidenceState": ["missing"]
+      }
+    },
+    {
+      "id": "work-tickets",
+      "label": "Work tickets",
+      "filter": {
+        "type": ["work_ticket"]
+      }
+    },
+    {
+      "id": "personal-prep",
+      "label": "Personal prep",
+      "filter": {
+        "type": ["personal", "learning", "career_review"]
+      }
+    }
+  ]
+}

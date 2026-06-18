@@ -1,0 +1,15 @@
+{
+  "name": "personal-task-board",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first JSON task board for personal work, agent workflows, and review evidence.",
+  "scripts": {
+    "validate": "node scripts/validate.mjs",
+    "import-update": "node scripts/import-update.mjs",
+    "serve": "python3 -m http.server 4173"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1"
+  }
+}

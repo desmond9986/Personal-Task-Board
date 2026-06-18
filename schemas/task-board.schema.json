@@ -1,0 +1,220 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "task-board.schema.json",
+  "title": "Personal Task Board Data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meta", "tasks"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "updatedAt", "syncState"],
+      "properties": {
+        "version": { "type": "integer", "minimum": 1 },
+        "updatedAt": { "type": "string" },
+        "syncState": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lastSyncAt", "lastSyncSource", "lastSyncStatus", "lastSyncSummary"],
+          "properties": {
+            "lastSyncAt": { "type": "string" },
+            "lastSyncSource": { "type": "string" },
+            "lastSyncStatus": { "type": "string", "enum": ["never", "success", "failed", "manual", "preview"] },
+            "lastSyncSummary": { "type": "string" }
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/task" }
+    }
+  },
+  "$defs": {
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "type",
+        "description",
+        "status",
+        "priority",
+        "energy",
+        "targetDate",
+        "dueDate",
+        "nextAction",
+        "notes",
+        "repeatHint",
+        "owner",
+        "agentHelp",
+        "agents",
+        "externalRefs",
+        "evidence",
+        "questions",
+        "checklist",
+        "activity",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["personal", "work_ticket", "learning", "agent_workflow", "career_review", "admin"] },
+        "description": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["backlog", "todo", "in_progress", "need_discussion", "blocked", "waiting", "review", "done", "dropped"]
+        },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] },
+        "energy": { "type": "string", "enum": ["low", "medium", "high"] },
+        "targetDate": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "nextAction": { "type": "string" },
+        "notes": { "type": "string" },
+        "repeatHint": { "type": "string", "enum": ["none", "daily", "weekly", "monthly", "custom"] },
+        "deleted": { "type": "boolean" },
+        "owner": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "name"],
+          "properties": {
+            "type": { "type": "string", "enum": ["human"] },
+            "name": { "type": "string", "minLength": 1 }
+          }
+        },
+        "agentHelp": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["wanted", "reason"],
+          "properties": {
+            "wanted": { "type": "boolean" },
+            "reason": { "type": "string" }
+          }
+        },
+        "agents": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/agent" }
+        },
+        "externalRefs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/externalRef" }
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "summary", "impact", "links", "reviewCategory"],
+          "properties": {
+            "state": { "type": "string", "enum": ["missing", "later", "not_due", "captured"] },
+            "summary": { "type": "string" },
+            "impact": { "type": "string" },
+            "links": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/externalRef" }
+            },
+            "reviewCategory": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "shipped_work",
+                  "quality_improvement",
+                  "risk_reduction",
+                  "cross_team_impact",
+                  "documentation",
+                  "mentoring_helping",
+                  "bug_handling",
+                  "ai_workflow",
+                  "learning"
+                ]
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "questions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/question" }
+        },
+        "checklist": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/checklistItem" }
+        },
+        "activity": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/activity" }
+        },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "name", "threadId", "agentId", "status", "pickedUpAt"],
+      "properties": {
+        "role": { "type": "string", "enum": ["worker", "reviewer", "architect", "researcher", "tester", "sync"] },
+        "name": { "type": "string", "minLength": 1 },
+        "threadId": { "type": "string" },
+        "agentId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "paused", "done", "blocked", "cancelled"] },
+        "pickedUpAt": { "type": "string" }
+      }
+    },
+    "externalRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "system", "id", "url", "label"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ticket", "pull_request", "design", "slack_thread", "document", "branch", "other"]
+        },
+        "system": { "type": "string" },
+        "id": { "type": "string" },
+        "url": { "type": "string" },
+        "label": { "type": "string" }
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "status", "answer", "askedTo", "createdAt"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "text": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "enum": ["open", "asked", "answered", "cancelled"] },
+        "answer": { "type": "string" },
+        "askedTo": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "checklistItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "done"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "done": { "type": "boolean" }
+      }
+    },
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "text", "actor", "at"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["created", "picked_up", "progress", "blocked", "review_ready", "done", "edited", "status_changed", "imported", "dropped"]
+        },
+        "text": { "type": "string", "minLength": 1 },
+        "actor": { "type": "string", "minLength": 1 },
+        "at": { "type": "string" }
+      }
+    }
+  }
+}

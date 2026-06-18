@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+
+# Keep folders, avoid accidentally committing private generated history.
+backups/*.json
+updates/*.json
+
+# Local scratch files.
+*.log

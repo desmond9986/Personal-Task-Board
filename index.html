@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Personal Task Board</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <div class="brand">
+          <h1>Personal Task Board</h1>
+          <span class="tag">JSON local</span>
+          <span class="tag">Prototype locked</span>
+        </div>
+        <div class="sync-note" id="sourceLine">Loading data source...</div>
+      </div>
+      <div class="top-actions">
+        <button class="btn" type="button" data-action="open-tasks-file">Open tasks.json</button>
+        <button class="btn primary" type="button" data-action="save-board">Save</button>
+        <button class="btn" type="button" data-action="export-update">Export update</button>
+        <button class="btn primary" type="button" data-route-button="create">Create task</button>
+      </div>
+      <input class="sr-only" id="tasksFileInput" type="file" accept="application/json,.json" />
+    </header>
+
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sidebar-block">
+          <p class="section-label">Search</p>
+          <input id="taskSearch" class="input" data-search-input type="search" placeholder="Search title, ref, next action..." />
+        </div>
+
+        <div class="sidebar-block">
+          <p class="section-label">Quick add</p>
+          <div class="quick-add">
+            <input id="quickAddInput" class="input" type="text" placeholder="Rough task..." />
+            <button class="btn primary" type="button" data-action="quick-add">Add</button>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <p class="section-label">Saved views</p>
+          <div class="saved-views" id="quickFilters"></div>
+        </div>
+
+        <div class="sidebar-block">
+          <p class="section-label">Status counts</p>
+          <div class="state-grid" id="statusCounts"></div>
+        </div>
+
+        <div class="sidebar-block">
+          <p class="section-label">Current filter</p>
+          <p class="meta-line" id="filterSummary">All tasks</p>
+        </div>
+
+        <div class="sidebar-block">
+          <p class="section-label">Guardrails</p>
+          <p class="meta-line">Agents cannot self-assign. External ticket sync is config-gated and still needs an explicit current-session command.</p>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <nav class="tabs" aria-label="Task board sections">
+          <button class="tab active" type="button" data-route-button="board">Board</button>
+          <button class="tab" type="button" data-route-button="detail">Task detail</button>
+          <button class="tab" type="button" data-route-button="create">Create task</button>
+          <button class="tab" type="button" data-route-button="sync">Sync/config</button>
+        </nav>
+
+        <section class="page active" id="page-board">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Task ledger</h2>
+                <p class="panel-copy">Scan task state, discussion needs, agent help, references, and review evidence from the JSON source.</p>
+              </div>
+              <div class="btn-row">
+                <button class="btn" type="button" data-action="clear-filters">Clear filters</button>
+                <button class="btn primary" type="button" data-route-button="create">Create task</button>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="summary-grid" id="summaryCards"></div>
+              <div class="filter-row" style="margin-top: 14px;">
+                <div>
+                  <p class="section-label">Visible tasks</p>
+                  <p class="meta-line"><strong id="visibleCount">0</strong> of <span id="totalCount">0</span></p>
+                </div>
+                <div class="btn-row" id="inlineQuickFilters"></div>
+              </div>
+              <div class="filter-grid">
+                <label>
+                  Search
+                  <input id="boardSearch" class="input" data-search-input type="search" placeholder="Title, ref, question, evidence..." />
+                </label>
+                <label>
+                  Status
+                  <select class="select" id="statusFilter"></select>
+                </label>
+                <label>
+                  Type
+                  <select class="select" id="typeFilter"></select>
+                </label>
+                <label>
+                  Priority
+                  <select class="select" id="priorityFilter"></select>
+                </label>
+                <label>
+                  Evidence
+                  <select class="select" id="evidenceFilter"></select>
+                </label>
+                <label>
+                  Sort
+                  <select class="select" id="sortBy">
+                    <option value="priority">Priority</option>
+                    <option value="targetDate">Target date</option>
+                    <option value="updatedAt">Updated</option>
+                    <option value="status">Status</option>
+                    <option value="energy">Energy</option>
+                  </select>
+                </label>
+                <label>
+                  Direction
+                  <select class="select" id="sortDirection">
+                    <option value="desc">Desc</option>
+                    <option value="asc">Asc</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>Status</th>
+                    <th>Next action</th>
+                    <th>Target</th>
+                    <th>Reference</th>
+                    <th>Agent</th>
+                    <th>Evidence</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="taskRows"></tbody>
+              </table>
+              <div class="empty" id="emptyState">No tasks match this filter. Clear filters, open data/tasks.json, or create a new task.</div>
+            </div>
+            <div class="mobile-task-list" id="mobileTaskCards"></div>
+          </article>
+        </section>
+
+        <section class="page" id="page-detail">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Task detail</h2>
+                <p class="panel-copy">Edit content first, then update state, evidence, and agent context. Save writes to the opened JSON file when available.</p>
+              </div>
+              <div class="btn-row">
+                <button class="btn" type="button" data-route-button="board">Back to board</button>
+                <button class="btn primary" type="button" data-route-button="create">Create task</button>
+              </div>
+            </div>
+            <div class="panel-body detail-main">
+              <section class="detail-work">
+                <div class="detail-status-band" id="detailStatusBand"></div>
+                <div class="detail-card action-card">
+                  <div class="detail-card-head">
+                    <div>
+                      <h3>Task content</h3>
+                      <p class="detail-card-copy">The plain-language version of what this task is and the smallest next action.</p>
+                    </div>
+                    <span class="chip mono" id="detailTaskId">No task</span>
+                  </div>
+                  <div class="form-banner" id="detailEditError">Title is required. Active tasks also need a next action.</div>
+                  <div class="detail-form-stack">
+                    <label>
+                      Title *
+                      <input class="input" id="detailTitleInput" aria-describedby="detailTitleError" />
+                      <span class="field-error" id="detailTitleError">Title is required.</span>
+                    </label>
+                    <label>
+                      Description
+                      <textarea class="textarea" id="detailDescriptionInput" placeholder="What is this task about?"></textarea>
+                    </label>
+                    <label>
+                      Next action
+                      <textarea class="textarea" id="detailNextAction" aria-describedby="detailNextActionError" placeholder="Smallest useful step. Required while task is active."></textarea>
+                      <span class="field-error" id="detailNextActionError">Active tasks need a next action.</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="detail-card">
+                  <div class="detail-card-head">
+                    <div>
+                      <h3>Discussion and references</h3>
+                      <p class="detail-card-copy">Questions, blockers, and links the next agent or future you needs before touching the work.</p>
+                    </div>
+                  </div>
+                  <div class="detail-two-col">
+                    <label>
+                      Questions / blockers
+                      <textarea class="textarea" id="detailQuestions" placeholder="One question per line"></textarea>
+                    </label>
+                    <label>
+                      Reference ids or links
+                      <textarea class="textarea" id="detailRefs" placeholder="One ref/link per line, or comma-separated"></textarea>
+                    </label>
+                  </div>
+                  <div class="btn-row" style="margin-top: 12px;">
+                    <button class="btn primary" type="button" data-action="save-detail-edits">Save task changes</button>
+                  </div>
+                </div>
+              </section>
+              <aside class="detail-side">
+                <div class="detail-card">
+                  <h3>State and review</h3>
+                  <label>
+                    Status
+                    <select class="select" id="detailStatus"></select>
+                  </label>
+                  <label style="margin-top: 10px;">
+                    Evidence
+                    <select class="select" id="detailEvidence"></select>
+                  </label>
+                  <label style="margin-top: 10px;">
+                    Agent help
+                    <select class="select" id="detailAgentHelp">
+                      <option value="false">No</option>
+                      <option value="true">Yes</option>
+                    </select>
+                  </label>
+                  <div class="btn-row" style="margin-top: 10px;">
+                    <button class="btn primary" type="button" data-action="save-detail-status">Save state</button>
+                    <button class="btn danger" type="button" data-action="mark-done">Mark done</button>
+                  </div>
+                  <p class="detail-help-text" id="detailStateHint">Evidence and agent help are saved with state.</p>
+                </div>
+                <div class="detail-card" style="margin-top: 12px;">
+                  <h3>Task snapshot</h3>
+                  <ul class="detail-meta-list" id="detailMetaSummary"></ul>
+                </div>
+                <div class="detail-card" style="margin-top: 12px;">
+                  <h3>Activity</h3>
+                  <ul class="list" id="detailActivity"></ul>
+                </div>
+              </aside>
+            </div>
+          </article>
+        </section>
+
+        <section class="page" id="page-create">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Create task</h2>
+                <p class="panel-copy">Create a JSON task with the required fields agents need. Save or export after adding.</p>
+              </div>
+            </div>
+            <form class="panel-body" id="createForm" novalidate>
+              <div class="form-banner" id="createFormError">Please fill the required fields before adding the task.</div>
+              <div class="field-grid">
+                <label>
+                  Title *
+                  <input class="input" name="title" required aria-describedby="titleError" placeholder="Payment edge case prompt draft" />
+                  <span class="field-error" id="titleError">Title is required.</span>
+                </label>
+                <label>
+                  Type
+                  <select class="select" name="type" id="createType"></select>
+                </label>
+                <label>
+                  Status
+                  <select class="select" name="status" id="createStatus"></select>
+                </label>
+                <label>
+                  Priority
+                  <select class="select" name="priority" id="createPriority"></select>
+                </label>
+                <label>
+                  Energy
+                  <select class="select" name="energy" id="createEnergy"></select>
+                </label>
+                <label>
+                  Target date
+                  <input class="input" name="targetDate" type="date" />
+                </label>
+                <label>
+                  Reference id or link
+                  <input class="input" name="ref" placeholder="RYT-123 or https://..." />
+                </label>
+                <label>
+                  Agent help
+                  <select class="select" name="agentHelp">
+                    <option value="false" selected>No</option>
+                    <option value="true">Yes</option>
+                  </select>
+                </label>
+              </div>
+              <div class="field-grid" style="margin-top: 12px;">
+                <label>
+                  Description
+                  <textarea class="textarea" name="description" placeholder="What is this task about?"></textarea>
+                </label>
+                <label>
+                  Next action *
+                  <textarea class="textarea" name="nextAction" required aria-describedby="nextActionError" placeholder="Smallest next step."></textarea>
+                  <span class="field-error" id="nextActionError">Next action is required so the task is immediately actionable.</span>
+                </label>
+              </div>
+              <div class="btn-row" style="margin-top: 14px;">
+                <button class="btn primary" type="submit">Add task</button>
+                <button class="btn" type="button" data-route-button="board">Cancel</button>
+              </div>
+            </form>
+          </article>
+        </section>
+
+        <section class="page" id="page-sync">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Sync and config</h2>
+                <p class="panel-copy">JSON is the source of truth. External ticket sync is intentionally not implemented in v1.</p>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="sync-grid">
+                <div class="sync-card">
+                  <h3>Source of truth</h3>
+                  <p><span class="mono">data/tasks.json</span><br /><span id="fileStatus">Not opened yet.</span></p>
+                </div>
+                <div class="sync-card">
+                  <h3>Update fallback</h3>
+                  <p><span class="mono">updates/tasks-update-YYYYMMDD-HHmmss.json</span><br />Exported updates are timestamped and merged by task id.</p>
+                </div>
+                <div class="sync-card">
+                  <h3>Last sync</h3>
+                  <p id="syncPageLastSync">never<br />Manual only until config says otherwise.</p>
+                </div>
+                <div class="sync-card">
+                  <h3>External ticket sync</h3>
+                  <p id="configSummary">Config loading...</p>
+                </div>
+                <div class="sync-card">
+                  <h3>Validation</h3>
+                  <p><span class="mono">npm run validate</span><br />Checks schema, duplicate IDs, and active tasks missing next action.</p>
+                </div>
+                <div class="sync-card">
+                  <h3>Import update</h3>
+                  <p><span class="mono">npm run import-update -- updates/file.json</span><br />Backs up current tasks, merges by id, validates, then writes.</p>
+                </div>
+              </div>
+              <div class="btn-row" style="margin-top: 14px;">
+                <button class="btn" type="button" data-action="open-tasks-file">Open tasks.json</button>
+                <button class="btn primary" type="button" data-action="save-board">Save</button>
+                <button class="btn" type="button" data-action="export-update">Export update</button>
+              </div>
+              <div class="detail-card" style="margin-top: 12px;">
+                <h3>Console</h3>
+                <p class="mono" id="syncConsole">ready</p>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

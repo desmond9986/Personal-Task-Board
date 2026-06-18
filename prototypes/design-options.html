@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Personal Task Board · Design Options</title>
+    <style>
+      :root {
+        --ink: #171b18;
+        --muted: #65706a;
+        --paper: #f7f4ed;
+        --line: #d8d1c3;
+        --green: #0d6b57;
+        --green-soft: #e5f1eb;
+        --amber: #a56512;
+        --red: #b23b36;
+        --blue: #305d8a;
+        --shadow: 0 18px 50px rgba(23, 27, 24, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .page {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 32px;
+      }
+
+      .intro {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 32px;
+        align-items: end;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 28px;
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--green);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 820px;
+        margin: 0;
+        font-size: clamp(40px, 7vw, 88px);
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+        text-wrap: balance;
+      }
+
+      .intro p {
+        max-width: 720px;
+        margin: 22px 0 0;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.7;
+      }
+
+      .context {
+        width: 360px;
+        border: 1px solid var(--line);
+        background: #fffdf8;
+        padding: 18px;
+      }
+
+      .context strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .context p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .jump {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 24px 0 0;
+      }
+
+      .jump a {
+        border: 1px solid var(--line);
+        background: #fffdf8;
+        padding: 9px 12px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .option {
+        margin-top: 44px;
+        border: 1px solid var(--line);
+        background: #fffdf8;
+        box-shadow: var(--shadow);
+      }
+
+      .option-head {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 24px;
+        padding: 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .option-title {
+        margin: 0;
+        font-size: 30px;
+        line-height: 1.1;
+      }
+
+      .option-copy {
+        max-width: 760px;
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.65;
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+        align-items: flex-start;
+      }
+
+      .tag {
+        border: 1px solid currentColor;
+        padding: 6px 8px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .mock {
+        min-height: 660px;
+        padding: 24px;
+      }
+
+      .small {
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--line);
+        padding: 5px 8px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+      }
+
+      .dot.amber {
+        background: var(--amber);
+      }
+
+      .dot.red {
+        background: var(--red);
+      }
+
+      .dot.blue {
+        background: var(--blue);
+      }
+
+      .task-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      .task-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .pill {
+        border: 1px solid var(--line);
+        padding: 4px 7px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 750;
+      }
+
+      .mini-list {
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .mini-list li {
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .mock-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+
+      .search {
+        min-width: 260px;
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 10px 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .button {
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        padding: 10px 13px;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .ghost {
+        background: #fff;
+        color: var(--ink);
+      }
+
+      /* Direction 1 */
+      .console {
+        background: #101714;
+        color: #eef4ee;
+      }
+
+      .console .mock-toolbar,
+      .console .lane,
+      .console .task,
+      .console .inspector {
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .console .search,
+      .console .ghost {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .console-grid {
+        display: grid;
+        grid-template-columns: 240px 1fr 300px;
+        gap: 14px;
+      }
+
+      .console-nav,
+      .inspector,
+      .lane,
+      .task {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .console-nav,
+      .inspector {
+        padding: 16px;
+      }
+
+      .view-link {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 11px 0;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 13px;
+      }
+
+      .console-board {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(170px, 1fr));
+        gap: 12px;
+      }
+
+      .lane {
+        min-height: 465px;
+        padding: 12px;
+      }
+
+      .lane h3,
+      .inspector h3 {
+        margin: 0 0 12px;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .task {
+        margin-bottom: 10px;
+        padding: 12px;
+      }
+
+      .console .task-title,
+      .console .lane h3,
+      .console .inspector h3 {
+        color: #fff;
+      }
+
+      .console .task-meta .pill {
+        border-color: rgba(255, 255, 255, 0.16);
+        color: rgba(255, 255, 255, 0.62);
+      }
+
+      /* Direction 2 */
+      .quiet {
+        background: #f8f4ea;
+      }
+
+      .quiet-grid {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 20px;
+      }
+
+      .quiet-panel,
+      .quiet-task,
+      .quiet-list {
+        border: 1px solid #ded5c5;
+        background: #fffdf8;
+      }
+
+      .quiet-panel {
+        padding: 18px;
+      }
+
+      .quiet-panel h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .focus-line {
+        margin-top: 16px;
+        border-left: 3px solid var(--green);
+        padding-left: 12px;
+      }
+
+      .quiet-columns {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+
+      .quiet-list {
+        padding: 14px;
+      }
+
+      .quiet-list h3 {
+        margin: 0 0 14px;
+        font-size: 13px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .quiet-task {
+        margin-bottom: 12px;
+        padding: 14px;
+      }
+
+      /* Direction 3 */
+      .ledger {
+        background: #f5f6f3;
+      }
+
+      .ledger-layout {
+        border: 1px solid #cfd5ce;
+        background: #fff;
+      }
+
+      .ledger-top {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-bottom: 1px solid #cfd5ce;
+      }
+
+      .metric {
+        padding: 16px;
+        border-right: 1px solid #cfd5ce;
+      }
+
+      .metric:last-child {
+        border-right: 0;
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 26px;
+      }
+
+      .ledger-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .ledger-table th,
+      .ledger-table td {
+        border-bottom: 1px solid #e3e5e1;
+        padding: 13px 14px;
+        text-align: left;
+        vertical-align: top;
+        font-size: 13px;
+      }
+
+      .ledger-table th {
+        background: #f0f2ef;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .ref {
+        color: var(--blue);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+      }
+
+      /* Direction 4 */
+      .dispatch {
+        background: #f2f5f2;
+      }
+
+      .dispatch-grid {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 16px;
+      }
+
+      .agent-queue,
+      .dispatch-board,
+      .dispatch-card {
+        border: 1px solid #cbd6ce;
+        background: #fff;
+      }
+
+      .agent-queue {
+        padding: 18px;
+      }
+
+      .agent-card {
+        margin-top: 12px;
+        border: 1px solid #dce2de;
+        padding: 14px;
+      }
+
+      .agent-card strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .dispatch-board {
+        padding: 16px;
+      }
+
+      .dispatch-row {
+        display: grid;
+        grid-template-columns: 160px 1fr 180px;
+        gap: 12px;
+        align-items: start;
+        border-bottom: 1px solid #e4e9e5;
+        padding: 14px 0;
+      }
+
+      .dispatch-row:last-child {
+        border-bottom: 0;
+      }
+
+      /* Direction 5 */
+      .paper {
+        background: #fcfaf4;
+        color: #1f201c;
+      }
+
+      .paper-sheet {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 28px;
+        max-width: 1080px;
+        margin: 0 auto;
+        border: 1px solid #d9d1bf;
+        background: #fffdf8;
+        padding: 28px;
+      }
+
+      .paper h3 {
+        margin: 0 0 10px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 25px;
+        font-weight: 500;
+      }
+
+      .paper-nav {
+        border-right: 1px solid #ded7c8;
+        padding-right: 18px;
+      }
+
+      .paper-nav a {
+        display: block;
+        padding: 9px 0;
+        color: var(--muted);
+        font-size: 14px;
+        text-decoration: none;
+      }
+
+      .paper-task {
+        display: grid;
+        grid-template-columns: 140px 1fr 140px;
+        gap: 16px;
+        border-top: 1px solid #ded7c8;
+        padding: 18px 0;
+      }
+
+      .paper-task:first-child {
+        border-top: 0;
+      }
+
+      .paper .task-title {
+        font-size: 16px;
+      }
+
+      @media (max-width: 1100px) {
+        .intro,
+        .option-head,
+        .console-grid,
+        .quiet-grid,
+        .dispatch-grid,
+        .paper-sheet {
+          grid-template-columns: 1fr;
+        }
+
+        .context {
+          width: auto;
+        }
+
+        .console-board,
+        .quiet-columns {
+          grid-template-columns: 1fr;
+        }
+
+        .dispatch-row,
+        .paper-task {
+          grid-template-columns: 1fr;
+        }
+
+        .ledger-top {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          padding: 16px;
+        }
+
+        .mock {
+          padding: 14px;
+        }
+
+        .option-head {
+          padding: 18px;
+        }
+
+        .search {
+          min-width: 100%;
+        }
+
+        .ledger-table {
+          display: block;
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="intro">
+        <div>
+          <p class="eyebrow">Design prototypes · choose before build</p>
+          <h1>Personal Task Board direction map</h1>
+          <p>
+            Five visual and information-architecture options for a local JSON-first task board. These are prototypes only.
+            No repo implementation, schema, scripts, or production app has been created yet.
+          </p>
+          <nav class="jump" aria-label="Prototype options">
+            <a href="#operator-console">01 Operator Console</a>
+            <a href="#quiet-workbench">02 Quiet Workbench</a>
+            <a href="#ticket-ledger">03 Ticket Ledger</a>
+            <a href="#agent-dispatch">04 Agent Dispatch</a>
+            <a href="#paper-board">05 Paper Board</a>
+          </nav>
+        </div>
+        <aside class="context">
+          <strong>Decision needed</strong>
+          <p>
+            Pick one direction, or mix parts. After you choose and explicitly say start, the actual repo can be implemented from
+            <code>planning/task-board-context.md</code>.
+          </p>
+        </aside>
+      </section>
+
+      <section class="option" id="operator-console">
+        <header class="option-head">
+          <div>
+            <p class="eyebrow">01 · Operator Console</p>
+            <h2 class="option-title">Dense control room for many active states</h2>
+            <p class="option-copy">
+              Best when you want the board to feel like an operational cockpit. It puts views, status columns, and selected-task context
+              on one screen. Strong for agent coordination, but can feel heavy if you mainly want calm personal tracking.
+            </p>
+          </div>
+          <div class="tag-list">
+            <span class="tag">High density</span>
+            <span class="tag">Agent visible</span>
+            <span class="tag">Best for desktop</span>
+          </div>
+        </header>
+        <div class="mock console">
+          <div class="mock-toolbar">
+            <div>
+              <div class="status"><span class="dot"></span> Last sync: manual · never</div>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <div class="search">Search title, refs, notes, questions...</div>
+              <div class="button ghost">Open JSON</div>
+              <div class="button">Quick add</div>
+            </div>
+          </div>
+          <div class="console-grid">
+            <aside class="console-nav">
+              <h3 style="margin:0 0 12px;">Views</h3>
+              <div class="view-link"><span>All tasks</span><strong>18</strong></div>
+              <div class="view-link"><span>Need discussion</span><strong>4</strong></div>
+              <div class="view-link"><span>Agent help wanted</span><strong>3</strong></div>
+              <div class="view-link"><span>Evidence missing</span><strong>2</strong></div>
+              <div class="view-link"><span>Work tickets</span><strong>6</strong></div>
+              <div class="view-link"><span>Personal prep</span><strong>5</strong></div>
+            </aside>
+            <section class="console-board">
+              <div class="lane">
+                <h3>Todo</h3>
+                <article class="task">
+                  <p class="task-title">Prepare first-week manager questions</p>
+                  <div class="task-meta"><span class="pill">personal</span><span class="pill">high</span><span class="pill">medium energy</span></div>
+                  <ul class="mini-list"><li>Next: draft 5 questions for first 1:1.</li></ul>
+                </article>
+              </div>
+              <div class="lane">
+                <h3>Need discussion</h3>
+                <article class="task">
+                  <p class="task-title">Payment timeout behavior checklist</p>
+                  <div class="task-meta"><span class="pill">work_ticket</span><span class="pill">RYT-123</span></div>
+                  <ul class="mini-list"><li>Question: source of truth after timeout?</li></ul>
+                </article>
+              </div>
+              <div class="lane">
+                <h3>Waiting</h3>
+                <article class="task">
+                  <p class="task-title">Confirm ticket system provider</p>
+                  <div class="task-meta"><span class="pill">admin</span><span class="pill">sync manual</span></div>
+                </article>
+              </div>
+              <div class="lane">
+                <h3>Review</h3>
+                <article class="task">
+                  <p class="task-title">Codebase Understanding Agent plan</p>
+                  <div class="task-meta"><span class="pill">agent_workflow</span><span class="pill">needs evidence</span></div>
+                </article>
+              </div>
+            </section>
+            <aside class="inspector">
+              <h3>Selected task</h3>
+              <p class="task-title">Payment timeout behavior checklist</p>
+              <ul class="mini-list">
+                <li>Agent help: wanted, but no agent can pick up until Desmond explicitly asks.</li>
+                <li>External refs: RYT-123, PR later.</li>
+                <li>Evidence reminder: fill impact when done.</li>
+              </ul>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="option" id="quiet-workbench">
+        <header class="option-head">
+          <div>
+            <p class="eyebrow">02 · Quiet Workbench</p>
+            <h2 class="option-title">Calm personal surface for daily clarity</h2>
+            <p class="option-copy">
+              Best if the board should reduce overwhelm. It emphasizes one next action, saved views, and a simple three-column flow.
+              Strong for ADHD-friendly use, but may need filters when ticket volume grows.
+            </p>
+          </div>
+          <div class="tag-list">
+            <span class="tag">Calm</span>
+            <span class="tag">ADHD-friendly</span>
+            <span class="tag">Low stress</span>
+          </div>
+        </header>
+        <div class="mock quiet">
+          <div class="mock-toolbar">
+            <div class="search">Quick add: ask manager about above expectation first 90 days</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <div class="button ghost">Export update</div>
+              <div class="button">Add task</div>
+            </div>
+          </div>
+          <div class="quiet-grid">
+            <aside class="quiet-panel">
+              <h3>Today, keep it small</h3>
+              <div class="focus-line">
+                <p class="task-title">One next action</p>
+                <p class="small" style="color:var(--muted);">Draft the first 5 manager questions. Do not polish yet.</p>
+              </div>
+              <div class="mini-list" style="margin-top:22px;">
+                <li><strong>Last sync</strong><br />Manual · never</li>
+                <li><strong>Agent queue</strong><br />3 tasks want help, none assigned.</li>
+                <li><strong>Evidence</strong><br />2 done tasks missing impact notes.</li>
+              </div>
+            </aside>
+            <section class="quiet-columns">
+              <div class="quiet-list">
+                <h3>Ready</h3>
+                <article class="quiet-task">
+                  <p class="task-title">Prepare first-week manager questions</p>
+                  <div class="task-meta"><span class="pill">career_review</span><span class="pill">high</span></div>
+                  <ul class="mini-list"><li>Next: rough draft only.</li></ul>
+                </article>
+                <article class="quiet-task">
+                  <p class="task-title">Create sanitized task examples</p>
+                  <div class="task-meta"><span class="pill">admin</span><span class="pill">low energy</span></div>
+                </article>
+              </div>
+              <div class="quiet-list">
+                <h3>Need discussion</h3>
+                <article class="quiet-task">
+                  <p class="task-title">Ask about AI coding guardrails</p>
+                  <div class="task-meta"><span class="pill">personal</span><span class="pill">manager</span></div>
+                </article>
+              </div>
+              <div class="quiet-list">
+                <h3>Done · evidence</h3>
+                <article class="quiet-task">
+                  <p class="task-title">Define task board scope</p>
+                  <div class="task-meta"><span class="pill">done</span><span class="pill">evidence missing</span></div>
+                </article>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="option" id="ticket-ledger">
+        <header class="option-head">
+          <div>
+            <p class="eyebrow">03 · Ticket Ledger</p>
+            <h2 class="option-title">Table-first board for references and auditability</h2>
+            <p class="option-copy">
+              Best if work tickets, external references, sync status, and validation are the priority. It is less emotional and more
+              operational. Strong for future ticket-system bridge work.
+            </p>
+          </div>
+          <div class="tag-list">
+            <span class="tag">Audit trail</span>
+            <span class="tag">Refs first</span>
+            <span class="tag">Work disciplined</span>
+          </div>
+        </header>
+        <div class="mock ledger">
+          <div class="mock-toolbar">
+            <div class="search">Search by task, ref, question, branch...</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <div class="button ghost">Validate JSON</div>
+              <div class="button">Import update</div>
+            </div>
+          </div>
+          <section class="ledger-layout">
+            <div class="ledger-top">
+              <div class="metric"><span class="small">Open</span><strong>12</strong></div>
+              <div class="metric"><span class="small">Need discussion</span><strong>4</strong></div>
+              <div class="metric"><span class="small">Agent help</span><strong>3</strong></div>
+              <div class="metric"><span class="small">Last sync</span><strong style="font-size:18px;">manual</strong></div>
+            </div>
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Status</th>
+                  <th>Refs</th>
+                  <th>Next action</th>
+                  <th>Agent</th>
+                  <th>Evidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Payment timeout behavior checklist</strong><br /><span class="small">work_ticket · high · medium energy</span></td>
+                  <td><span class="status"><span class="dot amber"></span>need_discussion</span></td>
+                  <td><span class="ref">RYT-123</span></td>
+                  <td>Ask BE about source of truth after timeout.</td>
+                  <td>none</td>
+                  <td>not required yet</td>
+                </tr>
+                <tr>
+                  <td><strong>Ticket Organizer Agent v1</strong><br /><span class="small">agent_workflow · high</span></td>
+                  <td><span class="status"><span class="dot blue"></span>review</span></td>
+                  <td><span class="ref">local</span></td>
+                  <td>Choose design direction before build.</td>
+                  <td>Codex watcher</td>
+                  <td>missing</td>
+                </tr>
+                <tr>
+                  <td><strong>Prepare first manager questions</strong><br /><span class="small">career_review · high</span></td>
+                  <td><span class="status"><span class="dot"></span>todo</span></td>
+                  <td><span class="ref">none</span></td>
+                  <td>Draft 5 questions.</td>
+                  <td>none</td>
+                  <td>later</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
+      </section>
+
+      <section class="option" id="agent-dispatch">
+        <header class="option-head">
+          <div>
+            <p class="eyebrow">04 · Agent Dispatch</p>
+            <h2 class="option-title">Agent-help queue with human control</h2>
+            <p class="option-copy">
+              Best if the main workflow becomes asking Codex or Claude to pick up specific tasks. It makes the hard rule visible:
+              agents can recommend tasks, but cannot self-assign without Desmond asking.
+            </p>
+          </div>
+          <div class="tag-list">
+            <span class="tag">Agent-ready</span>
+            <span class="tag">Human gated</span>
+            <span class="tag">Workflow focused</span>
+          </div>
+        </header>
+        <div class="mock dispatch">
+          <div class="mock-toolbar">
+            <div class="search">Filter: agentHelp.wanted = true</div>
+            <div class="button">Ask agent to pick selected task</div>
+          </div>
+          <div class="dispatch-grid">
+            <aside class="agent-queue">
+              <p class="eyebrow">Agent help queue</p>
+              <h3 style="margin:0; font-size:26px;">3 tasks want help</h3>
+              <article class="agent-card">
+                <strong>Discussion Prep Agent</strong>
+                <span class="small">Reason: turn rough manager questions into concise wording.</span>
+              </article>
+              <article class="agent-card">
+                <strong>Payment Edge Case Agent</strong>
+                <span class="small">Reason: review timeout, retry, duplicate-submit risks.</span>
+              </article>
+              <article class="agent-card">
+                <strong>Codebase Understanding Agent</strong>
+                <span class="small">Reason: map modules only after policy approval.</span>
+              </article>
+              <div style="margin-top:20px; border-top:1px solid #dce2de; padding-top:14px;">
+                <p class="task-title">Hard rule</p>
+                <p class="small" style="color:var(--muted);">Agent must not assign itself unless Desmond explicitly asks in the current session.</p>
+              </div>
+            </aside>
+            <section class="dispatch-board">
+              <div class="dispatch-row">
+                <div><span class="status"><span class="dot amber"></span>need_discussion</span></div>
+                <div>
+                  <p class="task-title">Prepare AI coding policy questions</p>
+                  <ul class="mini-list"><li>Next: ask what context is allowed in Claude/Codex.</li></ul>
+                </div>
+                <div class="small">Agent: none<br />Owner: Desmond</div>
+              </div>
+              <div class="dispatch-row">
+                <div><span class="status"><span class="dot blue"></span>review</span></div>
+                <div>
+                  <p class="task-title">Task-board schema design</p>
+                  <ul class="mini-list"><li>Next: choose prototype direction first.</li></ul>
+                </div>
+                <div class="small">Agent: reviewer done<br />Owner: Desmond</div>
+              </div>
+              <div class="dispatch-row">
+                <div><span class="status"><span class="dot red"></span>blocked</span></div>
+                <div>
+                  <p class="task-title">Ticket-system sync</p>
+                  <ul class="mini-list"><li>Blocked until Ryt ticket system and policy are known.</li></ul>
+                </div>
+                <div class="small">Sync: disabled<br />Frequency: manual</div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="option" id="paper-board">
+        <header class="option-head">
+          <div>
+            <p class="eyebrow">05 · Paper Board</p>
+            <h2 class="option-title">A quiet document-like board that still edits JSON</h2>
+            <p class="option-copy">
+              Best if you want the simplest possible local tool. It reads like a clean operating memo rather than a SaaS dashboard.
+              Strong for company laptop portability, print, and low maintenance.
+            </p>
+          </div>
+          <div class="tag-list">
+            <span class="tag">Minimal</span>
+            <span class="tag">Portable</span>
+            <span class="tag">Print friendly</span>
+          </div>
+        </header>
+        <div class="mock paper">
+          <div class="paper-sheet">
+            <nav class="paper-nav">
+              <p class="eyebrow">Views</p>
+              <a href="#">All</a>
+              <a href="#">Target soon</a>
+              <a href="#">Need discussion</a>
+              <a href="#">Agent help wanted</a>
+              <a href="#">Evidence missing</a>
+              <a href="#">Work tickets</a>
+              <a href="#">Personal prep</a>
+              <div style="margin-top:28px; color:var(--muted); font-size:13px; line-height:1.6;">
+                Last sync<br />
+                <strong style="color:var(--ink);">manual · never</strong>
+              </div>
+            </nav>
+            <section>
+              <div class="mock-toolbar">
+                <div>
+                  <h3>Open tasks</h3>
+                  <p class="small" style="margin:0; color:var(--muted);">Simple list first. Status, next action, refs, evidence reminder.</p>
+                </div>
+                <div class="search">Search board...</div>
+              </div>
+              <article class="paper-task">
+                <div><span class="status"><span class="dot"></span>todo</span></div>
+                <div>
+                  <p class="task-title">Prepare first-week manager questions</p>
+                  <p class="small" style="color:var(--muted);">Next: draft 5 questions. Type: career_review. Priority: high.</p>
+                </div>
+                <div class="small">Refs: none<br />Agent: none</div>
+              </article>
+              <article class="paper-task">
+                <div><span class="status"><span class="dot amber"></span>need_discussion</span></div>
+                <div>
+                  <p class="task-title">Payment timeout behavior checklist</p>
+                  <p class="small" style="color:var(--muted);">Question: what should user see when submit times out but backend may still process?</p>
+                </div>
+                <div class="small">Refs: RYT-123<br />Evidence: later</div>
+              </article>
+              <article class="paper-task">
+                <div><span class="status"><span class="dot blue"></span>review</span></div>
+                <div>
+                  <p class="task-title">Codebase Understanding Agent concept</p>
+                  <p class="small" style="color:var(--muted);">Use only if policy allows generated code graphs and summaries.</p>
+                </div>
+                <div class="small">Agent help: wanted<br />Sync: disabled</div>
+              </article>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
