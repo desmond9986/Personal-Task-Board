@@ -1285,3 +1285,29 @@ The locked implementation direction remains:
 - JSON source of truth
 - local-first save/export/import flow
 - table-first Design 1 UI
+
+Historical note:
+
+- sections before this implementation gate are retained for context and decision history
+- when those older sections say implementation has not started, treat that as historical, not current state
+
+## 40. First Review Fixes
+
+Date: 2026-06-18.
+
+After the initial GitHub push, Desmond asked to fix the review findings.
+
+Applied direction:
+
+- export changed tasks only, not the full board
+- include base task `updatedAt` timestamps in exported update files
+- make import block stale updates unless `--force` is intentionally used
+- preserve existing structured refs/questions where possible when editing text fields
+- add evidence summary, impact, links, and review categories to the detail page
+- make read-only auto-load vs writable file-open state explicit
+- prevent active statuses from being saved without a next action
+- validate config options against schema enums to catch drift
+- show due date beside target date
+- include overdue target dates in `Target soon`
+- add mobile empty state
+- add an agent pickup prompt template without letting agents self-assign

@@ -31,12 +31,18 @@ Open:
 http://localhost:4173
 ```
 
-The app tries to auto-load `data/tasks.json` when served locally. For direct file editing, click `Open tasks.json`, select `data/tasks.json`, then use `Save`.
+The app tries to auto-load `data/tasks.json` when served locally. Auto-loaded data is a read-only snapshot. For direct file editing, click `Open tasks.json`, select `data/tasks.json`, then use `Save`.
 
-If the browser cannot save back to the opened file, click `Export update`. Move the exported file into `updates/`, then run:
+If the browser cannot save back to the opened file, click `Export update`. Export creates a changed-task-only `taskUpdates[]` file with base timestamps for conflict detection. Move the exported file into `updates/`, then run:
 
 ```bash
 npm run import-update -- updates/tasks-update-YYYYMMDD-HHmmss.json
+```
+
+If import reports a conflict, re-open the latest `data/tasks.json` in the app and export again. Use `--force` only when you intentionally want to overwrite the current task:
+
+```bash
+npm run import-update -- updates/tasks-update-YYYYMMDD-HHmmss.json --force
 ```
 
 ## Validate
@@ -53,12 +59,13 @@ Validation checks:
 - duplicate question/activity IDs within a task
 - active tasks missing `nextAction`
 - required config options and view IDs
+- config options drifting away from schema enums
 
 ## Important Files
 
 - `index.html`: app shell
 - `style.css`: locked Design 1 visual system
-- `app.js`: board UI, filtering, create/detail edit, open/save/export flow
+- `app.js`: board UI, filtering, create/detail edit, open/save/changed-task export flow
 - `data/tasks.json`: task source of truth
 - `data/config.json`: statuses, views, sync guardrails, sensitive-data policy
 - `schemas/`: JSON Schema contracts

@@ -117,6 +117,7 @@
                   <select class="select" id="sortBy">
                     <option value="priority">Priority</option>
                     <option value="targetDate">Target date</option>
+                    <option value="dueDate">Due date</option>
                     <option value="updatedAt">Updated</option>
                     <option value="status">Status</option>
                     <option value="energy">Energy</option>
@@ -139,7 +140,7 @@
                     <th>Task</th>
                     <th>Status</th>
                     <th>Next action</th>
-                    <th>Target</th>
+                    <th>Target / due</th>
                     <th>Reference</th>
                     <th>Agent</th>
                     <th>Evidence</th>
@@ -151,6 +152,7 @@
               <div class="empty" id="emptyState">No tasks match this filter. Clear filters, open data/tasks.json, or create a new task.</div>
             </div>
             <div class="mobile-task-list" id="mobileTaskCards"></div>
+            <div class="empty" id="mobileEmptyState">No tasks match this filter. Clear filters, open data/tasks.json, or create a new task.</div>
           </article>
         </section>
 
@@ -216,6 +218,37 @@
                     <button class="btn primary" type="button" data-action="save-detail-edits">Save task changes</button>
                   </div>
                 </div>
+                <div class="detail-card">
+                  <div class="detail-card-head">
+                    <div>
+                      <h3>Review evidence</h3>
+                      <p class="detail-card-copy">Capture the proof and impact you may need for manager updates or December review.</p>
+                    </div>
+                  </div>
+                  <div class="detail-form-stack">
+                    <label>
+                      Evidence summary
+                      <textarea class="textarea" id="detailEvidenceSummary" placeholder="What useful thing happened?"></textarea>
+                    </label>
+                    <label>
+                      Impact
+                      <textarea class="textarea" id="detailEvidenceImpact" placeholder="Why did it matter? Risk reduced, quality improved, shipped work, learning, etc."></textarea>
+                    </label>
+                    <div class="detail-two-col">
+                      <label>
+                        Review categories
+                        <input class="input" id="detailEvidenceCategories" placeholder="risk_reduction, quality_improvement, ai_workflow" />
+                      </label>
+                      <label>
+                        Evidence links
+                        <textarea class="textarea" id="detailEvidenceLinks" placeholder="One evidence ref/link per line"></textarea>
+                      </label>
+                    </div>
+                    <div class="btn-row">
+                      <button class="btn primary" type="button" data-action="save-detail-status">Save evidence</button>
+                    </div>
+                  </div>
+                </div>
               </section>
               <aside class="detail-side">
                 <div class="detail-card">
@@ -236,7 +269,7 @@
                     </select>
                   </label>
                   <div class="btn-row" style="margin-top: 10px;">
-                    <button class="btn primary" type="button" data-action="save-detail-status">Save state</button>
+                    <button class="btn primary" type="button" data-action="save-detail-status">Save state/evidence</button>
                     <button class="btn danger" type="button" data-action="mark-done">Mark done</button>
                   </div>
                   <p class="detail-help-text" id="detailStateHint">Evidence and agent help are saved with state.</p>
@@ -244,6 +277,11 @@
                 <div class="detail-card" style="margin-top: 12px;">
                   <h3>Task snapshot</h3>
                   <ul class="detail-meta-list" id="detailMetaSummary"></ul>
+                </div>
+                <div class="detail-card" style="margin-top: 12px;">
+                  <h3>Agent pickup prompt</h3>
+                  <p class="mono" id="agentCommand">Select a task first.</p>
+                  <p class="detail-help-text">Use this only when you explicitly want an agent to work on the task.</p>
                 </div>
                 <div class="detail-card" style="margin-top: 12px;">
                   <h3>Activity</h3>
@@ -289,6 +327,10 @@
                 <label>
                   Target date
                   <input class="input" name="targetDate" type="date" />
+                </label>
+                <label>
+                  Due date
+                  <input class="input" name="dueDate" type="date" />
                 </label>
                 <label>
                   Reference id or link

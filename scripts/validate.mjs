@@ -5,10 +5,6 @@ import process from "node:process";
 
 const root = process.cwd();
 const activeStatuses = new Set(["backlog", "todo", "in_progress", "need_discussion", "blocked", "waiting", "review"]);
-const requiredStatuses = ["backlog", "todo", "in_progress", "need_discussion", "blocked", "waiting", "review", "done", "dropped"];
-const requiredTypes = ["personal", "work_ticket", "learning", "agent_workflow", "career_review", "admin"];
-const requiredEvidenceStates = ["missing", "later", "not_due", "captured"];
-
 async function readJson(relativePath) {
   const filePath = path.join(root, relativePath);
   return JSON.parse(await readFile(filePath, "utf8"));
@@ -28,9 +24,25 @@ function assertIncludesAll(label, actual, expected, errors) {
   });
 }
 
-function validateCustom(board, config) {
+function assertSameSet(label, actual, expected, errors) {
+  assertIncludesAll(label, actual, expected, errors);
+  const expectedSet = new Set(expected);
+  actual.forEach((value) => {
+    if (!expectedSet.has(value)) errors.push(`${label} contains "${value}" but schema does not allow it`);
+  });
+}
+
+function validateCustom(board, config, boardSchema) {
   const errors = [];
   const ids = new Set();
+  const taskSchema = boardSchema.$defs.task;
+  const schemaOptions = {
+    statuses: taskSchema.properties.status.enum,
+    types: taskSchema.properties.type.enum,
+    priorities: taskSchema.properties.priority.enum,
+    energies: taskSchema.properties.energy.enum,
+    evidenceStates: taskSchema.properties.evidence.properties.state.enum
+  };
 
   board.tasks.forEach((task, index) => {
     if (ids.has(task.id)) errors.push(`tasks[${index}] duplicates task id "${task.id}"`);
@@ -59,9 +71,11 @@ function validateCustom(board, config) {
     viewIds.add(view.id);
   });
 
-  assertIncludesAll("config.options.statuses", config.options.statuses, requiredStatuses, errors);
-  assertIncludesAll("config.options.types", config.options.types, requiredTypes, errors);
-  assertIncludesAll("config.options.evidenceStates", config.options.evidenceStates, requiredEvidenceStates, errors);
+  assertSameSet("config.options.statuses", config.options.statuses, schemaOptions.statuses, errors);
+  assertSameSet("config.options.types", config.options.types, schemaOptions.types, errors);
+  assertSameSet("config.options.priorities", config.options.priorities, schemaOptions.priorities, errors);
+  assertSameSet("config.options.energies", config.options.energies, schemaOptions.energies, errors);
+  assertSameSet("config.options.evidenceStates", config.options.evidenceStates, schemaOptions.evidenceStates, errors);
 
   return errors;
 }
@@ -78,7 +92,7 @@ const validateConfig = ajv.compile(configSchema);
 const errors = [];
 if (!validateBoard(board)) errors.push(...formatAjvErrors("data/tasks.json", validateBoard.errors));
 if (!validateConfig(config)) errors.push(...formatAjvErrors("data/config.json", validateConfig.errors));
-errors.push(...validateCustom(board, config));
+errors.push(...validateCustom(board, config, boardSchema));
 
 if (errors.length > 0) {
   console.error("Validation failed:");

@@ -678,6 +678,10 @@ label {
   display: block;
 }
 
+#mobileEmptyState {
+  display: none;
+}
+
 .mobile-task-card {
   border-top: 1px solid var(--line);
   background: #fff;
@@ -789,5 +793,9 @@ label {
   .mobile-task-list {
     display: grid;
     border-top: 1px solid var(--line);
+  }
+
+  #mobileEmptyState.active {
+    display: block;
   }
 }

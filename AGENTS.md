@@ -65,10 +65,13 @@ Merge behavior:
 - missing tasks are not deleted
 - deletion requires an update item with `deleted: true`
 - import creates a backup in `backups/`
+- app exports should use `taskUpdates[]`, not a full board snapshot
+- import checks exported base timestamps and blocks stale overwrites
+- use `--force` only when Desmond explicitly accepts overwriting conflicts
 
 ## UI Constraints
 
 - Keep the locked Design 1 direction: table-first, dense, practical, filterable.
 - Prioritize useful information over decorative polish.
 - Preserve mobile usability.
-- Keep the detail page as the main edit surface for title, description, next action, questions, refs, status, evidence, and agent-help state.
+- Keep the detail page as the main edit surface for title, description, next action, questions, refs, status, evidence summary/impact/links/categories, and agent-help state.

@@ -7,9 +7,9 @@ The v1 app intentionally does not integrate with company tools.
 - static HTML/CSS/JS
 - local JSON source of truth
 - file picker open/save
-- timestamped update export
-- Node validation
-- Node update import
+- timestamped changed-task update export
+- Node validation with config/schema drift checks
+- Node update import with stale overwrite detection
 - no external ticket sync
 - no MCP
 - no browser automation

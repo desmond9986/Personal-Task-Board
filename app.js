@@ -51,6 +51,17 @@
   };
 
   const activeStatuses = new Set(["backlog", "todo", "in_progress", "need_discussion", "blocked", "waiting", "review"]);
+  const allowedReviewCategories = new Set([
+    "shipped_work",
+    "quality_improvement",
+    "risk_reduction",
+    "cross_team_impact",
+    "documentation",
+    "mentoring_helping",
+    "bug_handling",
+    "ai_workflow",
+    "learning"
+  ]);
   const priorityRank = { low: 1, medium: 2, high: 3, urgent: 4 };
   const energyRank = { low: 1, medium: 2, high: 3 };
   const statusRank = { dropped: 0, done: 1, review: 2, waiting: 3, todo: 4, in_progress: 5, need_discussion: 6, blocked: 7, backlog: 8 };
@@ -70,7 +81,9 @@
     sortDirection: "desc",
     dirty: false,
     sourceMode: "loading",
-    console: "ready"
+    console: "ready",
+    changedTaskIds: new Set(),
+    baseTaskUpdatedAt: new Map()
   };
 
   const $ = (selector) => document.querySelector(selector);
@@ -111,6 +124,10 @@
     ].join("");
   }
 
+  function hasWritableFile() {
+    return Boolean(fileHandle && "createWritable" in fileHandle);
+  }
+
   function getTasks() {
     return Array.isArray(board.tasks) ? board.tasks.filter((task) => !task.deleted) : [];
   }
@@ -135,9 +152,9 @@
 
     try {
       board = await fetchJson("data/tasks.json");
-      state.sourceMode = "auto-loaded data/tasks.json";
+      state.sourceMode = "read-only auto-load: data/tasks.json";
       fileLabel = "data/tasks.json";
-      state.console = "Loaded data/tasks.json. Use Open tasks.json if you want direct save permission.";
+      state.console = "Loaded read-only data/tasks.json. Click Open tasks.json for direct save permission, or use Export update.";
     } catch {
       board = structuredClone(emptyBoard);
       state.sourceMode = "empty until tasks.json is opened";
@@ -145,6 +162,8 @@
     }
 
     ensureBoardShape();
+    state.changedTaskIds.clear();
+    rememberBaseTaskState();
     state.selectedId = selectedTask()?.id || "";
   }
 
@@ -155,14 +174,19 @@
     if (!Array.isArray(board.tasks)) board.tasks = [];
   }
 
+  function rememberBaseTaskState() {
+    state.baseTaskUpdatedAt = new Map(getTasks().map((task) => [task.id, task.updatedAt || ""]));
+  }
+
   function touchBoard(summary) {
     ensureBoardShape();
     board.meta.updatedAt = nowIso();
     if (summary) state.console = summary;
   }
 
-  function markDirty(summary) {
+  function markDirty(summary, taskId = "") {
     state.dirty = true;
+    if (taskId) state.changedTaskIds.add(taskId);
     touchBoard(summary);
   }
 
@@ -196,6 +220,12 @@
     return "Add next action";
   }
 
+  function targetDueLabel(task) {
+    const target = task.targetDate || "none";
+    const due = task.dueDate || "none";
+    return `target: ${target}\ndue: ${due}`;
+  }
+
   function taskSearchText(task) {
     return [
       task.id,
@@ -210,6 +240,8 @@
       task.evidence?.state,
       task.evidence?.summary,
       task.evidence?.impact,
+      ...(task.evidence?.reviewCategory || []),
+      ...(task.evidence?.links || []).flatMap((ref) => [ref.id, ref.label, ref.url, ref.system, ref.type]),
       ...(task.externalRefs || []).flatMap((ref) => [ref.id, ref.label, ref.url, ref.system, ref.type]),
       ...(task.questions || []).flatMap((question) => [question.text, question.answer, question.askedTo, question.status]),
       ...(task.agents || []).flatMap((agent) => [agent.name, agent.role, agent.status, agent.threadId, agent.agentId]),
@@ -237,7 +269,7 @@
       const today = new Date(`${todayDate()}T00:00:00`);
       const target = new Date(`${task.targetDate}T00:00:00`);
       const days = (target.getTime() - today.getTime()) / 86400000;
-      if (Number.isNaN(days) || days < 0 || days > filter.targetSoonDays) return false;
+      if (Number.isNaN(days) || days > filter.targetSoonDays) return false;
     }
 
     return true;
@@ -318,8 +350,10 @@
 
   function renderSourceState() {
     const dirtyText = state.dirty ? "unsaved changes" : "clean";
-    $("#sourceLine").textContent = `${state.sourceMode} · ${dirtyText} · ${getTasks().length} tasks`;
-    $("#fileStatus").textContent = `${fileLabel}; ${dirtyText}.`;
+    const accessText = hasWritableFile() ? "writable file opened" : "read-only snapshot";
+    const changedText = state.changedTaskIds.size ? `${state.changedTaskIds.size} changed task(s)` : "no changed tasks";
+    $("#sourceLine").textContent = `${accessText} · ${state.sourceMode} · ${dirtyText} · ${changedText} · ${getTasks().length} tasks`;
+    $("#fileStatus").textContent = `${fileLabel}; ${accessText}; ${dirtyText}; ${changedText}.`;
     $("#syncConsole").textContent = state.console;
 
     const sync = board.meta?.syncState || emptyBoard.meta.syncState;
@@ -399,6 +433,7 @@
     $("#visibleCount").textContent = filtered.length;
     $("#totalCount").textContent = getTasks().length;
     $("#emptyState").classList.toggle("active", filtered.length === 0);
+    $("#mobileEmptyState").classList.toggle("active", filtered.length === 0);
     $("#taskRows").innerHTML = filtered
       .map((task) => {
         const selected = task.id === state.selectedId ? "selected" : "";
@@ -416,7 +451,7 @@
             </td>
             <td><span class="status"><span class="dot ${escapeHtml(task.status)}"></span>${escapeHtml(task.status)}</span></td>
             <td>${escapeHtml(nextActionLabel(task))}</td>
-            <td><span class="mono">${escapeHtml(task.targetDate || "none")}</span></td>
+            <td><span class="mono">${escapeHtml(targetDueLabel(task)).replaceAll("\n", "<br />")}</span></td>
             <td>${refsHtml(task.externalRefs)}</td>
             <td>${escapeHtml(agents)}</td>
             <td><span class="chip ${chipClass(task.evidence?.state)}">${escapeHtml(task.evidence?.state || "missing")}</span></td>
@@ -445,6 +480,7 @@
             <div class="mobile-task-meta">
               <div><strong>Next:</strong> ${escapeHtml(nextActionLabel(task))}</div>
               <div><strong>Target:</strong> <span class="mono">${escapeHtml(task.targetDate || "none")}</span></div>
+              <div><strong>Due:</strong> <span class="mono">${escapeHtml(task.dueDate || "none")}</span></div>
               <div><strong>Ref:</strong> ${escapeHtml(taskRefsText(task) || "none")}</div>
               <div><strong>Agent:</strong> ${escapeHtml(agents)}</div>
             </div>
@@ -464,6 +500,10 @@
       "#detailNextAction",
       "#detailQuestions",
       "#detailRefs",
+      "#detailEvidenceSummary",
+      "#detailEvidenceImpact",
+      "#detailEvidenceCategories",
+      "#detailEvidenceLinks",
       "#detailStatus",
       "#detailEvidence",
       "#detailAgentHelp"
@@ -485,9 +525,14 @@
       $("#detailNextAction").value = "";
       $("#detailQuestions").value = "";
       $("#detailRefs").value = "";
+      $("#detailEvidenceSummary").value = "";
+      $("#detailEvidenceImpact").value = "";
+      $("#detailEvidenceCategories").value = "";
+      $("#detailEvidenceLinks").value = "";
       $("#detailStatusBand").innerHTML = '<span class="chip">Open tasks.json or create a task</span>';
       $("#detailMetaSummary").innerHTML = "";
       $("#detailActivity").innerHTML = "";
+      $("#agentCommand").textContent = "Select a task first.";
       return;
     }
 
@@ -499,6 +544,11 @@
     $("#detailNextAction").value = task.nextAction || "";
     $("#detailQuestions").value = (task.questions || []).map((question) => question.text).join("\n");
     $("#detailRefs").value = (task.externalRefs || []).map(formatRefForTextarea).join("\n");
+    $("#detailEvidenceSummary").value = task.evidence?.summary || "";
+    $("#detailEvidenceImpact").value = task.evidence?.impact || "";
+    $("#detailEvidenceCategories").value = (task.evidence?.reviewCategory || []).join(", ");
+    $("#detailEvidenceCategories").classList.remove("invalid");
+    $("#detailEvidenceLinks").value = (task.evidence?.links || []).map(formatRefForTextarea).join("\n");
     $("#detailStatus").value = task.status;
     $("#detailEvidence").value = task.evidence?.state || "missing";
     $("#detailAgentHelp").value = String(Boolean(task.agentHelp?.wanted));
@@ -508,7 +558,8 @@
       `<span class="chip ${chipClass(task.priority)}">${escapeHtml(task.priority)}</span>`,
       `<span class="chip">${escapeHtml(task.energy)} energy</span>`,
       `<span class="chip ${chipClass(task.evidence?.state)}">evidence: ${escapeHtml(task.evidence?.state || "missing")}</span>`,
-      `<span class="chip">target: ${escapeHtml(task.targetDate || "none")}</span>`
+      `<span class="chip">target: ${escapeHtml(task.targetDate || "none")}</span>`,
+      `<span class="chip">due: ${escapeHtml(task.dueDate || "none")}</span>`
     ].join("");
 
     $("#detailStateHint").textContent =
@@ -521,6 +572,8 @@
       ["Current agents", taskAgentsText(task) || "none"],
       ["Questions", task.questions?.length ? `${task.questions.length} open/known` : "none"],
       ["References", taskRefsText(task) || "none"],
+      ["Due date", task.dueDate || "none"],
+      ["Evidence categories", task.evidence?.reviewCategory?.join(", ") || "none"],
       ["Updated", task.updatedAt || "unknown"]
     ]
       .map(([label, value]) => `<li><strong>${escapeHtml(label)}</strong>${escapeHtml(value)}</li>`)
@@ -530,6 +583,8 @@
       .slice(0, 8)
       .map((item) => `<li>${escapeHtml(item.text)}<br /><span class="mono">${escapeHtml(item.at)}</span></li>`)
       .join("");
+
+    $("#agentCommand").textContent = `Ask Codex/Claude: please pick up ${task.id} as worker/reviewer. Read AGENTS.md first, update agents[], then run npm run validate.`;
   }
 
   function renderPages() {
@@ -616,6 +671,7 @@
   }
 
   function clearDetailErrors() {
+    $("#detailEditError").textContent = "Title is required. Active tasks also need a next action.";
     $("#detailEditError").classList.remove("active");
     setDetailFieldError($("#detailTitleInput"), "#detailTitleError", "");
     setDetailFieldError($("#detailNextAction"), "#detailNextActionError", "");
@@ -637,6 +693,20 @@
     return invalid.length === 0;
   }
 
+  function validateStatusChange(task, nextStatus) {
+    clearDetailErrors();
+    const nextAction = $("#detailNextAction").value.trim();
+    if (activeStatuses.has(nextStatus) && !nextAction) {
+      setDetailFieldError($("#detailNextAction"), "#detailNextActionError", "Active tasks need a next action before saving this status.");
+      $("#detailEditError").textContent = "Add a next action before moving this task into an active status.";
+      $("#detailEditError").classList.add("active");
+      $("#detailNextAction").focus();
+      return false;
+    }
+    if (task.nextAction !== nextAction) task.nextAction = nextAction;
+    return true;
+  }
+
   function parseLineList(value) {
     return value
       .split("\n")
@@ -644,27 +714,55 @@
       .filter(Boolean);
   }
 
+  function parseReviewCategories(value) {
+    return Array.from(
+      new Set(
+        value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      )
+    );
+  }
+
+  function validateReviewCategories() {
+    const field = $("#detailEvidenceCategories");
+    const categories = parseReviewCategories(field.value);
+    const invalid = categories.filter((category) => !allowedReviewCategories.has(category));
+    field.classList.toggle("invalid", invalid.length > 0);
+    if (invalid.length > 0) {
+      state.console = `Invalid review categories: ${invalid.join(", ")}. Use schema categories like risk_reduction, quality_improvement, ai_workflow, learning.`;
+      field.focus();
+      renderSourceState();
+      return false;
+    }
+    return true;
+  }
+
+  function parseRefLine(item) {
+    const parts = item.split("|").map((part) => part.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const url = parts.find((part) => part.startsWith("http")) || "";
+      return {
+        type: url ? "other" : "document",
+        system: "manual",
+        id: parts[0].startsWith("http") ? "" : parts[0],
+        url,
+        label: parts[0]
+      };
+    }
+    if (/^https?:\/\//.test(item)) {
+      return { type: "other", system: "manual", id: "", url: item, label: item };
+    }
+    return { type: "ticket", system: "unknown", id: item, url: "", label: item };
+  }
+
   function parseRefList(value) {
     return value
       .split(/\n|,/)
       .map((item) => item.trim())
       .filter(Boolean)
-      .map((item) => {
-        const parts = item.split("|").map((part) => part.trim()).filter(Boolean);
-        if (parts.length >= 2) {
-          return {
-            type: parts[1].startsWith("http") ? "other" : "document",
-            system: "manual",
-            id: parts[0].startsWith("http") ? "" : parts[0],
-            url: parts.find((part) => part.startsWith("http")) || "",
-            label: parts[0]
-          };
-        }
-        if (/^https?:\/\//.test(item)) {
-          return { type: "other", system: "manual", id: "", url: item, label: item };
-        }
-        return { type: "ticket", system: "unknown", id: item, url: "", label: item };
-      });
+      .map(parseRefLine);
   }
 
   function formatRefForTextarea(ref) {
@@ -675,6 +773,7 @@
   function syncQuestions(task, rawText) {
     const existingByText = new Map((task.questions || []).map((question) => [question.text, question]));
     return parseLineList(rawText).map((text, index) => {
+      if (task.questions?.[index]) return { ...task.questions[index], text };
       const existing = existingByText.get(text);
       if (existing) return existing;
       return {
@@ -685,6 +784,24 @@
         askedTo: "",
         createdAt: nowIso()
       };
+    });
+  }
+
+  function syncRefs(existingRefs = [], rawText) {
+    return parseLineList(rawText).flatMap((line, index) => {
+      const parsedRefs = parseRefList(line);
+      return parsedRefs.map((parsed, offset) => {
+        const existing = existingRefs[index + offset] || {};
+        return {
+          ...existing,
+          ...parsed,
+          type: parsed.type || existing.type || "other",
+          system: parsed.system || existing.system || "manual",
+          id: parsed.id || existing.id || "",
+          url: parsed.url || existing.url || "",
+          label: parsed.label || existing.label || parsed.id || parsed.url || ""
+        };
+      });
     });
   }
 
@@ -718,7 +835,7 @@
       priority: values.priority || "medium",
       energy: values.energy || "medium",
       targetDate: values.targetDate || "",
-      dueDate: "",
+      dueDate: values.dueDate || "",
       nextAction: values.nextAction?.trim() || "",
       notes: "",
       repeatHint: "none",
@@ -761,7 +878,7 @@
     const task = createTaskFromValues(values);
     board.tasks.unshift(task);
     state.selectedId = task.id;
-    markDirty(`Created ${task.id}. Save or export update to persist.`);
+    markDirty(`Created ${task.id}. Save or export update to persist.`, task.id);
     clearCreateErrors(form);
     form.reset();
     renderSelectOptions();
@@ -791,7 +908,7 @@
     board.tasks.unshift(task);
     input.value = "";
     state.selectedId = task.id;
-    markDirty(`Quick-added ${task.id}. Save or export update to persist.`);
+    markDirty(`Quick-added ${task.id}. Save or export update to persist.`, task.id);
     renderAll();
   }
 
@@ -802,36 +919,48 @@
     task.description = $("#detailDescriptionInput").value.trim();
     task.nextAction = $("#detailNextAction").value.trim();
     task.questions = syncQuestions(task, $("#detailQuestions").value);
-    task.externalRefs = parseRefList($("#detailRefs").value);
+    task.externalRefs = syncRefs(task.externalRefs || [], $("#detailRefs").value);
     task.updatedAt = nowIso();
     task.activity.unshift(activity(task.id, "edited", "Task content and context updated."));
-    markDirty(`Updated ${task.id}. Save or export update to persist.`);
+    markDirty(`Updated ${task.id}. Save or export update to persist.`, task.id);
     renderAll();
   }
 
   function saveDetailStatus() {
     const task = selectedTask();
     if (!task) return;
-    task.status = $("#detailStatus").value;
+    const nextStatus = $("#detailStatus").value;
+    if (!validateStatusChange(task, nextStatus)) return;
+    if (!validateReviewCategories()) return;
+    task.status = nextStatus;
     task.evidence.state = $("#detailEvidence").value;
+    task.evidence.summary = $("#detailEvidenceSummary").value.trim();
+    task.evidence.impact = $("#detailEvidenceImpact").value.trim();
+    task.evidence.reviewCategory = parseReviewCategories($("#detailEvidenceCategories").value);
+    task.evidence.links = syncRefs(task.evidence.links || [], $("#detailEvidenceLinks").value);
     task.agentHelp.wanted = $("#detailAgentHelp").value === "true";
     if (!task.agentHelp.wanted) task.agentHelp.reason = "";
     if (task.agentHelp.wanted && !task.agentHelp.reason) task.agentHelp.reason = "Requested from detail page.";
     task.updatedAt = nowIso();
     task.activity.unshift(activity(task.id, "status_changed", `State saved: ${task.status}, evidence ${task.evidence.state}.`));
-    markDirty(`Saved state for ${task.id}. Save or export update to persist.`);
+    markDirty(`Saved state/evidence for ${task.id}. Save or export update to persist.`, task.id);
     renderAll();
   }
 
   function markDone() {
     const task = selectedTask();
     if (!task) return;
+    if (!validateReviewCategories()) return;
     task.status = "done";
     task.evidence.state = $("#detailEvidence").value;
+    task.evidence.summary = $("#detailEvidenceSummary").value.trim();
+    task.evidence.impact = $("#detailEvidenceImpact").value.trim();
+    task.evidence.reviewCategory = parseReviewCategories($("#detailEvidenceCategories").value);
+    task.evidence.links = syncRefs(task.evidence.links || [], $("#detailEvidenceLinks").value);
     task.agentHelp.wanted = $("#detailAgentHelp").value === "true";
     task.updatedAt = nowIso();
     task.activity.unshift(activity(task.id, "done", task.evidence.state === "missing" ? "Marked done; evidence still missing." : "Marked done."));
-    markDirty(`Marked ${task.id} done. Save or export update to persist.`);
+    markDirty(`Marked ${task.id} done. Save or export update to persist.`, task.id);
     renderAll();
   }
 
@@ -842,8 +971,10 @@
     ensureBoardShape();
     fileHandle = handle;
     fileLabel = sourceLabel;
-    state.sourceMode = handle ? `opened ${sourceLabel}` : `loaded ${sourceLabel}`;
+    state.sourceMode = handle ? `writable open: ${sourceLabel}` : `read-only loaded: ${sourceLabel}`;
     state.dirty = false;
+    state.changedTaskIds.clear();
+    rememberBaseTaskState();
     state.selectedId = selectedTask()?.id || "";
     state.console = `Loaded ${sourceLabel}.`;
     renderAll();
@@ -871,15 +1002,18 @@
 
   async function saveBoard() {
     try {
-      touchBoard("Saving...");
       if (!fileHandle || !("createWritable" in fileHandle)) {
-        exportUpdate();
+        state.console = "Save needs a writable file handle. Click Open tasks.json first, or use Export update.";
+        renderAll();
         return;
       }
+      touchBoard("Saving...");
       const writable = await fileHandle.createWritable();
       await writable.write(stableJson(board));
       await writable.close();
       state.dirty = false;
+      state.changedTaskIds.clear();
+      rememberBaseTaskState();
       state.console = `Saved ${fileLabel}.`;
       renderAll();
     } catch (error) {
@@ -889,9 +1023,25 @@
   }
 
   function exportUpdate() {
-    touchBoard("Exporting update...");
+    if (state.changedTaskIds.size === 0) {
+      state.console = "No changed tasks to export.";
+      renderAll();
+      return;
+    }
+    touchBoard("Exporting changed tasks...");
     const filename = `tasks-update-${timestampForFile()}.json`;
-    const blob = new Blob([stableJson(board)], { type: "application/json" });
+    const changedTasks = getTasks().filter((task) => state.changedTaskIds.has(task.id));
+    const update = {
+      meta: {
+        updateFormatVersion: 1,
+        exportedAt: nowIso(),
+        sourceFile: fileLabel,
+        sourceBoardUpdatedAt: board.meta.updatedAt || "",
+        baseTaskUpdatedAt: Object.fromEntries(changedTasks.map((task) => [task.id, state.baseTaskUpdatedAt.get(task.id) || ""]))
+      },
+      taskUpdates: changedTasks
+    };
+    const blob = new Blob([stableJson(update)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -900,7 +1050,7 @@
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    state.console = `Exported ${filename}. Move it to updates/ then run npm run import-update -- updates/${filename}`;
+    state.console = `Exported ${changedTasks.length} changed task(s) to ${filename}. Move it to updates/ then run npm run import-update -- updates/${filename}`;
     renderAll();
   }
 

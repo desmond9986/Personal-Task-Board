@@ -58,21 +58,38 @@ function validateCustomBoard(board) {
 }
 
 function updateTasksFromFile(updateFile) {
-  if (Array.isArray(updateFile.tasks)) return updateFile.tasks;
-  if (Array.isArray(updateFile.taskUpdates)) return updateFile.taskUpdates;
+  if (Array.isArray(updateFile.taskUpdates)) {
+    return {
+      tasks: updateFile.taskUpdates,
+      partial: true,
+      baseTaskUpdatedAt: updateFile.meta?.baseTaskUpdatedAt || {}
+    };
+  }
+  if (Array.isArray(updateFile.tasks)) {
+    return {
+      tasks: updateFile.tasks,
+      partial: false,
+      baseTaskUpdatedAt: updateFile.meta?.baseTaskUpdatedAt || {}
+    };
+  }
   throw new Error("Update file must contain a tasks[] or taskUpdates[] array.");
 }
 
 const updatePath = process.argv[2];
+const force = process.argv.includes("--force");
 if (!updatePath) {
   console.error("Usage: npm run import-update -- updates/tasks-update-YYYYMMDD-HHmmss.json");
+  console.error("Use --force only when you intentionally want to overwrite conflict warnings.");
   process.exit(1);
 }
 
 const ajv = new Ajv({ allErrors: true });
 const boardSchema = await readJson("schemas/task-board.schema.json");
 const validateBoard = ajv.compile(boardSchema);
-const validateTask = ajv.compile(boardSchema.$defs.task);
+const validateTask = ajv.compile({
+  ...boardSchema.$defs.task,
+  $defs: boardSchema.$defs
+});
 
 const existing = await readJson("data/tasks.json");
 if (!validateBoard(existing)) {
@@ -82,7 +99,8 @@ if (!validateBoard(existing)) {
 }
 
 const updateFile = await readJson(updatePath);
-const incomingTasks = updateTasksFromFile(updateFile);
+const update = updateTasksFromFile(updateFile);
+const incomingTasks = update.tasks;
 const updateErrors = [];
 
 incomingTasks.forEach((task, index) => {
@@ -106,6 +124,29 @@ const byId = new Map(existing.tasks.map((task) => [task.id, task]));
 let added = 0;
 let updated = 0;
 let deleted = 0;
+const conflicts = [];
+
+incomingTasks.forEach((task) => {
+  const existingTask = byId.get(task.id);
+  if (!existingTask) return;
+  if (!update.partial) return;
+
+  const baseUpdatedAt = update.baseTaskUpdatedAt[task.id];
+  if (typeof baseUpdatedAt !== "string") {
+    conflicts.push(`${task.id}: update is missing base updatedAt for existing task`);
+    return;
+  }
+  if ((existingTask.updatedAt || "") !== baseUpdatedAt) {
+    conflicts.push(`${task.id}: current updatedAt ${existingTask.updatedAt || "(empty)"} differs from update base ${baseUpdatedAt || "(new task)"}`);
+  }
+});
+
+if (conflicts.length > 0 && !force) {
+  console.error("Import conflicts detected; data/tasks.json was not changed:");
+  conflicts.forEach((conflict) => console.error(`- ${conflict}`));
+  console.error("Re-open the latest tasks.json and export again, or rerun with --force if overwrite is intentional.");
+  process.exit(1);
+}
 
 incomingTasks.forEach((task) => {
   if (task.deleted === true) {

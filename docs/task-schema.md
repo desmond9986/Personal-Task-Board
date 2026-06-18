@@ -84,3 +84,36 @@ Evidence supports December review and manager updates.
 - `captured`
 
 Use `summary`, `impact`, `links`, and `reviewCategory` when a completed task has useful performance evidence.
+
+Allowed review categories:
+
+- `shipped_work`
+- `quality_improvement`
+- `risk_reduction`
+- `cross_team_impact`
+- `documentation`
+- `mentoring_helping`
+- `bug_handling`
+- `ai_workflow`
+- `learning`
+
+## Update Files
+
+The app exports changed-task-only update files:
+
+```json
+{
+  "meta": {
+    "updateFormatVersion": 1,
+    "exportedAt": "2026-06-18T12:30:00.000Z",
+    "sourceFile": "data/tasks.json",
+    "sourceBoardUpdatedAt": "2026-06-18T12:30:00+08:00",
+    "baseTaskUpdatedAt": {
+      "PTB-001": "2026-06-18T12:30:00+08:00"
+    }
+  },
+  "taskUpdates": []
+}
+```
+
+`scripts/import-update.mjs` uses `baseTaskUpdatedAt` to prevent stale browser exports from overwriting newer task edits.

@@ -56,6 +56,12 @@ Then summarize:
 - validation result
 - any next action Desmond needs
 
+## Browser Update Files
+
+The browser app exports only changed tasks in `taskUpdates[]`.
+
+Import is conflict-checked against each task's base `updatedAt`. If a conflict appears, do not force it unless Desmond explicitly accepts the overwrite. The safer path is to re-open the latest `data/tasks.json`, reapply the browser edits, export again, and import the fresh update.
+
 ## External Systems
 
 Do not sync external ticket systems by default.
