@@ -30,19 +30,7 @@ When Desmond assigns a task:
 6. Run `npm run validate`.
 7. Summarize changed task IDs and validation result.
 
-For active tasks, keep `nextAction` non-empty. Active statuses are:
-
-```text
-backlog
-todo
-in_progress
-need_discussion
-blocked
-waiting
-review
-```
-
-`done` and `dropped` may have empty `nextAction`.
+`nextAction` is optional for every status. Keep it when the next useful step is known. If the next step is genuinely unclear, leave `nextAction` empty and capture the uncertainty in `questions` or `notes` instead of inventing a fake action.
 
 ## JSON Merge Workflow
 
@@ -52,20 +40,21 @@ Preferred manual edit:
 npm run validate
 ```
 
-Fallback update import:
+Optional update import:
 
 ```bash
 npm run import-update -- updates/tasks-update-YYYYMMDD-HHmmss.json
 ```
 
-Merge behavior:
+Use update import only when an agent or external process intentionally creates a `taskUpdates[]` file. The normal workflow is direct scoped edits to `data/tasks.json`, followed by `npm run validate`.
+
+Import behavior:
 
 - same `id` updates an existing task
 - new `id` adds a task
 - missing tasks are not deleted
 - deletion requires an update item with `deleted: true`
 - import creates a backup in `backups/`
-- app exports should use `taskUpdates[]`, not a full board snapshot
 - import checks exported base timestamps and blocks stale overwrites
 - use `--force` only when Desmond explicitly accepts overwriting conflicts
 
@@ -74,4 +63,5 @@ Merge behavior:
 - Keep the locked Design 1 direction: table-first, dense, practical, filterable.
 - Prioritize useful information over decorative polish.
 - Preserve mobile usability.
-- Keep the detail page as the main edit surface for title, description, next action, questions, refs, status, evidence summary/impact/links/categories, and agent-help state.
+- Keep `index.html` as a read-only viewer. It may load `tasks.json`, filter, sort, and show task detail, but it must not create, edit, save, export, or merge tasks.
+- Do not add more UI features unless Desmond explicitly reverses the current agent-first workflow direction.
