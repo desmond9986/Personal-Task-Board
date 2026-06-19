@@ -1412,3 +1412,33 @@ Locked adjustment:
 - localhost is optional only for browser auto-load convenience
 - README and UI copy should not present `npm run serve` as the main path
 - agents still edit `data/tasks.json`; the viewer only reloads or reopens the file
+
+## 48. Pivot To Agentic Workflow Layer
+
+Date: 2026-06-19.
+
+Desmond said the project has gone too far into UI and is lacking the agentic abilities that were the original reason for the tool.
+
+The HTML viewer is now enough for the current phase. Do not keep polishing UI unless it blocks actual use. The next product work should focus on making Codex, Claude, and future agents reliably operate on `data/tasks.json`.
+
+Locked adjustment:
+
+- stop expanding the HTML feature surface for now
+- keep `index.html` as a simple read-only viewer for filtering, sorting, and task detail
+- prioritize agent workflows, playbooks, prompts, guardrails, and small local scripts
+- task creation and task updates should happen through agents editing JSON, not through UI forms
+- the real product value is agent coordination around tasks, not dashboard styling
+
+Next build areas:
+
+- `docs/agent-workflows.md` for how agents add, update, pick up, review, and summarize tasks
+- reusable prompt snippets for messy task intake, board review, weekly summary, blocked-task review, and manager-update preparation
+- small CLI helpers for listing tasks, finding blocked/unclear tasks, and generating weekly summaries from `data/tasks.json`
+- stronger guardrails for avoiding duplicate tasks, preserving unrelated task fields, keeping `nextAction` empty when unknown, and validating after every change
+- starter tasks that represent Desmond's actual Ryt onboarding and performance-prep needs
+
+Future agent guardrail:
+
+- before proposing UI work, first ask whether the same outcome is better handled by an agent workflow or script
+- when Desmond says "add task", "update task", "summarize", "review board", or "what should I do next", treat that as an agentic JSON workflow, not a UI change request
+- if a workflow is repeated manually more than twice, consider creating a script or documented agent playbook
