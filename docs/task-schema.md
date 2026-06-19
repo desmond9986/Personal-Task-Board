@@ -32,7 +32,7 @@ Every task has:
 - `energy`: `low`, `medium`, or `high`
 - `targetDate`: optional preferred work date
 - `dueDate`: optional real deadline
-- `nextAction`: required while active
+- `nextAction`: optional next step when known
 - `externalRefs`: ticket, PR, document, design, branch, or other references
 - `questions`: discussion items separate from messy notes
 - `agentHelp`: whether Desmond wants possible agent help
@@ -40,21 +40,9 @@ Every task has:
 - `evidence`: performance review evidence state and notes
 - `activity`: local audit trail
 
-## Active Next Action Rule
+## Next Action Rule
 
-Active tasks must have `nextAction`.
-
-Active statuses:
-
-- `backlog`
-- `todo`
-- `in_progress`
-- `need_discussion`
-- `blocked`
-- `waiting`
-- `review`
-
-`done` and `dropped` tasks may leave `nextAction` empty.
+`nextAction` is useful but optional. Some tasks start as unknown, blocked, or discussion-first. Leave it empty when the next step is unclear, then use `questions`, `status`, and `notes` to capture what is missing.
 
 ## External References
 

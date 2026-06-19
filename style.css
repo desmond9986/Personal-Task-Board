@@ -263,6 +263,14 @@ select {
   display: block;
 }
 
+.field-help {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .textarea {
   min-height: 82px;
   resize: vertical;

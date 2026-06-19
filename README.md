@@ -57,7 +57,6 @@ Validation checks:
 - schema shape for `data/config.json`
 - duplicate task IDs
 - duplicate question/activity IDs within a task
-- active tasks missing `nextAction`
 - required config options and view IDs
 - config options drifting away from schema enums
 

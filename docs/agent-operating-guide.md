@@ -30,6 +30,8 @@ Add an `activity[]` entry when:
 
 Keep updates small and clear. Do not rewrite unrelated tasks.
 
+Do not invent a `nextAction` just to fill the field. Leave it empty when the next step is genuinely unknown, and capture the uncertainty in `questions` or `notes`.
+
 ## After Work
 
 Update fields that changed:

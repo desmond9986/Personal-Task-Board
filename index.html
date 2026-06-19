@@ -148,11 +148,11 @@
                   <div class="detail-card-head">
                     <div>
                       <h3>Task content</h3>
-                      <p class="detail-card-copy">The plain-language version of what this task is and the smallest next action.</p>
+                      <p class="detail-card-copy">The plain-language version of what this task is, plus the next action if you already know it.</p>
                     </div>
                     <span class="chip mono" id="detailTaskId">No task</span>
                   </div>
-                  <div class="form-banner" id="detailEditError">Title is required. Active tasks also need a next action.</div>
+                  <div class="form-banner" id="detailEditError">Title is required.</div>
                   <div class="detail-form-stack">
                     <label>
                       Title *
@@ -164,9 +164,9 @@
                       <textarea class="textarea" id="detailDescriptionInput" placeholder="What is this task about?"></textarea>
                     </label>
                     <label>
-                      Next action
-                      <textarea class="textarea" id="detailNextAction" aria-describedby="detailNextActionError" placeholder="Smallest useful step. Required while task is active."></textarea>
-                      <span class="field-error" id="detailNextActionError">Active tasks need a next action.</span>
+                      Next action (optional)
+                      <textarea class="textarea" id="detailNextAction" aria-describedby="detailNextActionHelp" placeholder="Leave empty if the next step is unknown."></textarea>
+                      <span class="field-help" id="detailNextActionHelp">Use questions or blockers below when you do not know the next step yet.</span>
                     </label>
                   </div>
                 </div>
@@ -323,9 +323,9 @@
                   <textarea class="textarea" name="description" placeholder="What is this task about?"></textarea>
                 </label>
                 <label>
-                  Next action *
-                  <textarea class="textarea" name="nextAction" required aria-describedby="nextActionError" placeholder="Smallest next step."></textarea>
-                  <span class="field-error" id="nextActionError">Next action is required so the task is immediately actionable.</span>
+                  Next action (optional)
+                  <textarea class="textarea" name="nextAction" aria-describedby="nextActionHelp" placeholder="Leave empty if the next step is unknown."></textarea>
+                  <span class="field-help" id="nextActionHelp">You can add this later from task detail.</span>
                 </label>
               </div>
               <div class="btn-row" style="margin-top: 14px;">
@@ -364,7 +364,7 @@
                 </div>
                 <div class="sync-card">
                   <h3>Validation</h3>
-                  <p><span class="mono">npm run validate</span><br />Checks schema, duplicate IDs, and active tasks missing next action.</p>
+                  <p><span class="mono">npm run validate</span><br />Checks schema, duplicate IDs, config options, and view IDs.</p>
                 </div>
                 <div class="sync-card">
                   <h3>Import update</h3>

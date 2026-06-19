@@ -337,18 +337,15 @@ The UI should not force dates.
 
 ## 12. Next Action
 
-Every active task should have one clear `nextAction`.
+`nextAction` is useful when known, but optional for every status.
 
-`nextAction` is required for active tasks.
-
-`nextAction` is optional for `done` and `dropped`.
-
-The UI should highlight active tasks missing `nextAction`.
+The UI should make it easy to add a clear `nextAction`, but it must not block tasks where the next step is genuinely unknown.
 
 Reason:
 
-- `nextAction` is the ADHD/focus anchor.
-- It prevents tasks from becoming vague blobs.
+- some onboarding, discussion, and blocked tasks start with uncertainty
+- `questions`, `notes`, and status can hold uncertainty until the next step becomes clear
+- forcing a fake `nextAction` makes the board less honest
 
 ## 13. Checklist
 
@@ -878,7 +875,7 @@ Validation should check:
 - allowed task types
 - allowed priorities
 - allowed energy values
-- active tasks have `nextAction`
+- `nextAction` is a valid optional field
 - externalRefs shape
 - agents shape
 - activity shape
@@ -1334,3 +1331,21 @@ Future agent guardrail:
 
 - do not re-add dashboard cards, a sidebar, or repeated filter controls unless Desmond explicitly asks for a reporting dashboard view
 - prefer fewer always-visible elements and move secondary metadata into task detail
+
+## 42. Optional Next Action
+
+Date: 2026-06-19.
+
+Desmond said `nextAction` should not be necessary because some tasks begin with uncertainty and he may not know the next step yet.
+
+Supersedes the earlier active-task next-action rule from section 40.
+
+Locked adjustment:
+
+- `nextAction` remains in the schema as a useful field, but it is optional
+- create task can save with an empty next action
+- detail edit can save with an empty next action
+- status changes do not require next action
+- quick add should not invent a fake next action
+- validation and import validation must allow empty next action
+- agents should capture uncertainty in `questions` or `notes` instead of forcing `nextAction`

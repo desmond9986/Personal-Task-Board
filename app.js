@@ -50,7 +50,6 @@
     tasks: []
   };
 
-  const activeStatuses = new Set(["backlog", "todo", "in_progress", "need_discussion", "blocked", "waiting", "review"]);
   const allowedReviewCategories = new Set([
     "shipped_work",
     "quality_improvement",
@@ -222,7 +221,7 @@
   function nextActionLabel(task) {
     if (task.nextAction) return task.nextAction;
     if (["done", "dropped"].includes(task.status)) return "No next action";
-    return "Add next action";
+    return "Unknown yet";
   }
 
   function targetDueLabel(task) {
@@ -659,14 +658,13 @@
 
   function clearCreateErrors(form) {
     $("#createFormError").classList.remove("active");
-    ["title", "nextAction"].forEach((name) => setCreateFieldError(form.elements[name], ""));
+    setCreateFieldError(form.elements.title, "");
   }
 
   function validateCreateForm(form) {
     clearCreateErrors(form);
     const requiredFields = [
-      [form.elements.title, "Title is required."],
-      [form.elements.nextAction, "Next action is required so the task is immediately actionable."]
+      [form.elements.title, "Title is required."]
     ];
     const invalid = requiredFields.filter(([field, message]) => {
       const missing = !field.value.trim();
@@ -689,38 +687,26 @@
   }
 
   function clearDetailErrors() {
-    $("#detailEditError").textContent = "Title is required. Active tasks also need a next action.";
+    $("#detailEditError").textContent = "Title is required.";
     $("#detailEditError").classList.remove("active");
     setDetailFieldError($("#detailTitleInput"), "#detailTitleError", "");
-    setDetailFieldError($("#detailNextAction"), "#detailNextActionError", "");
   }
 
-  function validateDetailEdits(task) {
+  function validateDetailEdits() {
     clearDetailErrors();
     const invalid = [];
     if (!$("#detailTitleInput").value.trim()) {
       setDetailFieldError($("#detailTitleInput"), "#detailTitleError", "Title is required.");
       invalid.push($("#detailTitleInput"));
     }
-    if (task && activeStatuses.has(task.status) && !$("#detailNextAction").value.trim()) {
-      setDetailFieldError($("#detailNextAction"), "#detailNextActionError", "Active tasks need a next action.");
-      invalid.push($("#detailNextAction"));
-    }
     $("#detailEditError").classList.toggle("active", invalid.length > 0);
     if (invalid.length > 0) invalid[0].focus();
     return invalid.length === 0;
   }
 
-  function validateStatusChange(task, nextStatus) {
+  function validateStatusChange(task) {
     clearDetailErrors();
     const nextAction = $("#detailNextAction").value.trim();
-    if (activeStatuses.has(nextStatus) && !nextAction) {
-      setDetailFieldError($("#detailNextAction"), "#detailNextActionError", "Active tasks need a next action before saving this status.");
-      $("#detailEditError").textContent = "Add a next action before moving this task into an active status.";
-      $("#detailEditError").classList.add("active");
-      $("#detailNextAction").focus();
-      return false;
-    }
     if (task.nextAction !== nextAction) task.nextAction = nextAction;
     return true;
   }
@@ -918,7 +904,7 @@
       energy: "medium",
       targetDate: "",
       description: "",
-      nextAction: "Clarify and normalize this rough task.",
+      nextAction: "",
       ref: "",
       agentHelp: "false"
     });
@@ -932,7 +918,7 @@
 
   function saveDetailEdits() {
     const task = selectedTask();
-    if (!task || !validateDetailEdits(task)) return;
+    if (!task || !validateDetailEdits()) return;
     task.title = $("#detailTitleInput").value.trim();
     task.description = $("#detailDescriptionInput").value.trim();
     task.nextAction = $("#detailNextAction").value.trim();
@@ -948,7 +934,7 @@
     const task = selectedTask();
     if (!task) return;
     const nextStatus = $("#detailStatus").value;
-    if (!validateStatusChange(task, nextStatus)) return;
+    if (!validateStatusChange(task)) return;
     if (!validateReviewCategories()) return;
     task.status = nextStatus;
     task.evidence.state = $("#detailEvidence").value;
@@ -1174,22 +1160,15 @@
       addTaskFromForm(event.currentTarget);
     });
 
-    ["title", "nextAction"].forEach((name) => {
-      $("#createForm").elements[name].addEventListener("input", (event) => {
-        if (event.target.value.trim()) setCreateFieldError(event.target, "");
-      });
+    $("#createForm").elements.title.addEventListener("input", (event) => {
+      if (event.target.value.trim()) setCreateFieldError(event.target, "");
     });
 
-    [
-      ["#detailTitleInput", "#detailTitleError"],
-      ["#detailNextAction", "#detailNextActionError"]
-    ].forEach(([fieldSelector, errorSelector]) => {
-      $(fieldSelector).addEventListener("input", (event) => {
-        if (event.target.value.trim()) setDetailFieldError(event.target, errorSelector, "");
-        if ($("#detailTitleInput").value.trim() && $("#detailNextAction").value.trim()) {
-          $("#detailEditError").classList.remove("active");
-        }
-      });
+    $("#detailTitleInput").addEventListener("input", (event) => {
+      if (event.target.value.trim()) {
+        setDetailFieldError(event.target, "#detailTitleError", "");
+        $("#detailEditError").classList.remove("active");
+      }
     });
 
     window.addEventListener("hashchange", () => {

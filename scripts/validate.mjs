@@ -4,7 +4,6 @@ import path from "node:path";
 import process from "node:process";
 
 const root = process.cwd();
-const activeStatuses = new Set(["backlog", "todo", "in_progress", "need_discussion", "blocked", "waiting", "review"]);
 async function readJson(relativePath) {
   const filePath = path.join(root, relativePath);
   return JSON.parse(await readFile(filePath, "utf8"));
@@ -47,10 +46,6 @@ function validateCustom(board, config, boardSchema) {
   board.tasks.forEach((task, index) => {
     if (ids.has(task.id)) errors.push(`tasks[${index}] duplicates task id "${task.id}"`);
     ids.add(task.id);
-
-    if (activeStatuses.has(task.status) && !task.nextAction.trim()) {
-      errors.push(`${task.id} is active (${task.status}) but nextAction is empty`);
-    }
 
     const questionIds = new Set();
     task.questions.forEach((question) => {
