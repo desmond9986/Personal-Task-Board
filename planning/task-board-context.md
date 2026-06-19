@@ -1365,3 +1365,18 @@ Locked adjustment:
 - rough intake marks `agentHelp.wanted=true` with a normalization reason
 - the app should provide a copyable agent message for Codex/Claude
 - agents should normalize messy chat requests directly into `data/tasks.json` when asked
+
+## 44. Save Button Clarity
+
+Date: 2026-06-19.
+
+Desmond asked why the top `Save` button exists when he can already add/capture a task.
+
+Decision:
+
+- adding/capturing a task updates the in-browser board state
+- direct persistence still needs a writable `data/tasks.json` handle, because browser file access is permission-based
+- the top save action must not appear as a generic always-available `Save`
+- when no writable file is open, the button should say `Open file to save` and be disabled
+- when a writable file is open and changes exist, it should say `Save changes`
+- export update should also be disabled when there are no changed tasks

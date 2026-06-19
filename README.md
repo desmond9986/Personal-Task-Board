@@ -33,7 +33,7 @@ http://localhost:4173
 
 Use `Add task` for rough capture. The structured form is secondary; the intended low-friction flow is to tell Codex/Claude the messy task and let the agent normalize `data/tasks.json`.
 
-The app tries to auto-load `data/tasks.json` when served locally. Auto-loaded data is a read-only snapshot. For direct file editing, click `Open tasks.json`, select `data/tasks.json`, then use `Save`.
+The app tries to auto-load `data/tasks.json` when served locally. Auto-loaded data is a read-only snapshot. For direct file editing, click `Open tasks.json`, select `data/tasks.json`, then use `Save changes`.
 
 If the browser cannot save back to the opened file, click `Export update`. Export creates a changed-task-only `taskUpdates[]` file with base timestamps for conflict detection. Move the exported file into `updates/`, then run:
 

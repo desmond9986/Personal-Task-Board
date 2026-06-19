@@ -354,11 +354,27 @@
 
   function renderSourceState() {
     const dirtyText = state.dirty ? "unsaved changes" : "clean";
-    const accessText = hasWritableFile() ? "writable file opened" : "read-only snapshot";
+    const writable = hasWritableFile();
+    const accessText = writable ? "writable file opened" : "read-only snapshot";
     const changedText = state.changedTaskIds.size ? `${state.changedTaskIds.size} changed task(s)` : "no changed tasks";
     $("#sourceLine").textContent = `${accessText} · ${state.sourceMode} · ${dirtyText} · ${changedText} · ${getTasks().length} tasks`;
     $("#fileStatus").textContent = `${fileLabel}; ${accessText}; ${dirtyText}; ${changedText}.`;
     $("#syncConsole").textContent = state.console;
+
+    $$('[data-action="save-board"]').forEach((button) => {
+      button.disabled = !writable || !state.dirty;
+      button.textContent = writable ? (state.dirty ? "Save changes" : "Saved") : "Open file to save";
+      button.title = writable
+        ? "Write current browser changes to the opened tasks.json file."
+        : "Open data/tasks.json first for direct saving. Otherwise use Export update.";
+    });
+
+    $$('[data-action="export-update"]').forEach((button) => {
+      button.disabled = state.changedTaskIds.size === 0;
+      button.title = state.changedTaskIds.size
+        ? "Export changed tasks for import-update."
+        : "No changed tasks to export.";
+    });
 
     const sync = board.meta?.syncState || emptyBoard.meta.syncState;
     $("#syncPageLastSync").innerHTML = `${escapeHtml(sync.lastSyncStatus || "never")}<br />${escapeHtml(sync.lastSyncSummary || "Manual only until config says otherwise.")}`;
@@ -1094,7 +1110,7 @@
   async function saveBoard() {
     try {
       if (!fileHandle || !("createWritable" in fileHandle)) {
-        state.console = "Save needs a writable file handle. Click Open tasks.json first, or use Export update.";
+        state.console = "Direct save needs a writable file handle. Click Open tasks.json first, or use Export update.";
         renderAll();
         return;
       }

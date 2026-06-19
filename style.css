@@ -325,6 +325,13 @@ select {
   color: var(--red);
 }
 
+.btn:disabled {
+  border-color: var(--line);
+  background: var(--surface-soft);
+  color: #8b958e;
+  cursor: not-allowed;
+}
+
 .filter-row {
   justify-content: space-between;
 }
