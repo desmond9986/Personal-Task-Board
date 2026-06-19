@@ -1,0 +1,39 @@
+{
+  "name": "personal-task-board",
+  "version": "0.1.0",
+  "description": "Local JSON task-board commands for agent-first task intake, triage, updates, weekly summaries, and review evidence.",
+  "author": {
+    "name": "Desmond"
+  },
+  "homepage": "https://github.com/desmond9986/Personal-Task-Board",
+  "repository": "https://github.com/desmond9986/Personal-Task-Board",
+  "license": "Proprietary",
+  "keywords": [
+    "tasks",
+    "productivity",
+    "agents",
+    "json",
+    "workflow",
+    "career-review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Personal Task Board",
+    "shortDescription": "Agent commands for a local JSON task board.",
+    "longDescription": "Personal Task Board provides Codex skills for low-friction task intake, task updates, next-action recommendations, blocked-task review, context resume packs, weekly summaries, and performance-review evidence capture against a local data/tasks.json source of truth.",
+    "developerName": "Desmond",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/desmond9986/Personal-Task-Board",
+    "defaultPrompt": [
+      "Use personal-task-board:task-add to capture this",
+      "Use personal-task-board:task-next to choose focus",
+      "Use personal-task-board:task-weekly for my update"
+    ],
+    "brandColor": "#0B6B57",
+    "screenshots": []
+  }
+}

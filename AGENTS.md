@@ -2,7 +2,7 @@
 
 This repo is Desmond's local-first Personal Task Board. It coordinates personal tasks, future work-ticket references, learning, agent workflows, and review evidence through JSON.
 
-For user-facing command phrases such as `task add`, `task next`, `task blocked`, and `task weekly`, read `docs/agent-workflows.md`.
+For plugin skills such as `personal-task-board:task-add`, `personal-task-board:task-next`, `personal-task-board:task-blocked`, and `personal-task-board:task-weekly`, read `docs/agent-workflows.md`.
 
 ## Source Of Truth
 

@@ -1452,13 +1452,16 @@ Desmond clarified that the future plugin/orchestrator should expose a few simple
 Implemented direction:
 
 - add `docs/agent-workflows.md` as the command/playbook layer
-- commands are natural-language prefixes for agents, not browser UI controls
-- examples include `task add`, `task update`, `task next`, `task blocked`, `task resume`, `task weekly`, `task evidence`, `task review-board`, and `task handoff`
+- add `.codex-plugin/plugin.json` so the repo can be installed as a Codex plugin
+- expose the first real plugin commands as skills under `skills/`
+- plugin skill commands are `personal-task-board:task-add`, `personal-task-board:task-update`, `personal-task-board:task-next`, `personal-task-board:task-blocked`, `personal-task-board:task-resume`, `personal-task-board:task-weekly`, `personal-task-board:task-evidence`, `personal-task-board:task-review-board`, and `personal-task-board:task-handoff`
+- natural-language prefixes such as `task add` remain useful fallback phrases, but they are not the actual plugin command surface
+- commands are not browser UI controls
 - agents should still operate on `data/tasks.json`, preserve unrelated fields, and run `npm run validate` after writes
-- keep MCP/plugin/orchestrator as future work until the command menu proves useful manually
+- keep MCP tools and a heavier orchestrator as future work until the plugin skills prove useful manually
 
 Future agent guardrail:
 
-- when adding a new command, prefer one that reduces repeated manual reasoning
+- when adding a new plugin skill, prefer one that reduces repeated manual reasoning
 - avoid commands that only create more metadata, ceremony, or dashboards
 - if a command cannot be explained in one sentence, it is probably too complicated for the current phase

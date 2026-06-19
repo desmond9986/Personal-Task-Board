@@ -2,7 +2,17 @@
 
 This file is the command menu for agents working with Desmond's Personal Task Board.
 
-These are not browser UI commands and not an MCP/plugin contract yet. They are low-friction phrases Desmond can send to Codex, Claude, or a future local orchestrator. The agent should operate on `data/tasks.json`, keep the HTML viewer read-only, and run validation after any write.
+The repo now exposes these workflows as Codex plugin skills. After the plugin is installed and a new thread starts, invoke them by naming the plugin skill, for example:
+
+```text
+Use personal-task-board:task-add to capture this: ask manager how to ramp up fast
+Use personal-task-board:task-next
+Use personal-task-board:task-weekly
+```
+
+Plain phrases such as `task add: ...` still work as fallback language, but the plugin command surface is the skill set under `skills/`.
+
+These are not browser UI commands and not an MCP tool contract yet. They are low-friction plugin skills Desmond can send to Codex, Claude, or a future local orchestrator. The agent should operate on `data/tasks.json`, keep the HTML viewer read-only, and run validation after any write.
 
 ## Operating Rules
 
@@ -25,6 +35,18 @@ Default response style:
 - Mention changed task IDs and validation result after writes.
 
 ## Command Menu
+
+Actual plugin skills:
+
+- `personal-task-board:task-add`
+- `personal-task-board:task-update`
+- `personal-task-board:task-next`
+- `personal-task-board:task-blocked`
+- `personal-task-board:task-resume`
+- `personal-task-board:task-weekly`
+- `personal-task-board:task-evidence`
+- `personal-task-board:task-review-board`
+- `personal-task-board:task-handoff`
 
 ### `task add: <rough task>`
 

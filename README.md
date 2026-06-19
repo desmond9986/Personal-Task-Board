@@ -37,6 +37,30 @@ Run npm run validate before finishing.
 
 After an agent changes JSON, refresh the page or click `Open tasks.json` again to view the latest file.
 
+## Plugin Commands
+
+This repo is also a Codex plugin. After installing/reloading the plugin and starting a new thread, use these plugin skills:
+
+```text
+personal-task-board:task-add
+personal-task-board:task-update
+personal-task-board:task-next
+personal-task-board:task-blocked
+personal-task-board:task-resume
+personal-task-board:task-weekly
+personal-task-board:task-evidence
+personal-task-board:task-review-board
+personal-task-board:task-handoff
+```
+
+Example:
+
+```text
+Use personal-task-board:task-add to capture this: ask manager what good ramp-up looks like in first 30 days
+```
+
+These skills operate on `data/tasks.json`; they are not buttons in the HTML viewer.
+
 Localhost is optional. Use it only if you want browser auto-load of `data/tasks.json`:
 
 ```bash
@@ -70,6 +94,8 @@ Validation checks:
 - `index.html`: app shell
 - `style.css`: locked Design 1 visual system
 - `app.js`: view-only board UI, filtering, sorting, detail rendering, and JSON file loading
+- `.codex-plugin/plugin.json`: Codex plugin manifest
+- `skills/`: plugin command skills for task add/update/triage/summary/evidence workflows
 - `data/tasks.json`: task source of truth
 - `data/config.json`: statuses, views, sync guardrails, sensitive-data policy
 - `schemas/`: JSON Schema contracts

@@ -2,7 +2,7 @@
 
 This guide is for Codex, Claude, and future local agents using the task board.
 
-For user-facing command phrases such as `task add`, `task next`, and `task weekly`, read `docs/agent-workflows.md`.
+For plugin skills such as `personal-task-board:task-add`, `personal-task-board:task-next`, and `personal-task-board:task-weekly`, read `docs/agent-workflows.md`.
 
 ## Before Work
 
