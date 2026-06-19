@@ -76,6 +76,7 @@ Validation checks:
 - `scripts/validate.mjs`: validation entry point
 - `scripts/import-update.mjs`: timestamped update merge
 - `docs/agent-operating-guide.md`: agent workflow rules
+- `docs/agent-workflows.md`: command menu for asking agents to add, update, review, and summarize tasks
 - `docs/task-schema.md`: task data notes
 - `docs/integration-roadmap.md`: future sync/plugin plan
 

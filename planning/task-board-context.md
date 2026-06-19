@@ -1442,3 +1442,23 @@ Future agent guardrail:
 - before proposing UI work, first ask whether the same outcome is better handled by an agent workflow or script
 - when Desmond says "add task", "update task", "summarize", "review board", or "what should I do next", treat that as an agentic JSON workflow, not a UI change request
 - if a workflow is repeated manually more than twice, consider creating a script or documented agent playbook
+
+## 49. Agent Command Menu
+
+Date: 2026-06-19.
+
+Desmond clarified that the future plugin/orchestrator should expose a few simple commands users can tell agents, but it should not become a high-friction feature framework.
+
+Implemented direction:
+
+- add `docs/agent-workflows.md` as the command/playbook layer
+- commands are natural-language prefixes for agents, not browser UI controls
+- examples include `task add`, `task update`, `task next`, `task blocked`, `task resume`, `task weekly`, `task evidence`, `task review-board`, and `task handoff`
+- agents should still operate on `data/tasks.json`, preserve unrelated fields, and run `npm run validate` after writes
+- keep MCP/plugin/orchestrator as future work until the command menu proves useful manually
+
+Future agent guardrail:
+
+- when adding a new command, prefer one that reduces repeated manual reasoning
+- avoid commands that only create more metadata, ceremony, or dashboards
+- if a command cannot be explained in one sentence, it is probably too complicated for the current phase

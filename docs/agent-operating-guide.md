@@ -2,6 +2,8 @@
 
 This guide is for Codex, Claude, and future local agents using the task board.
 
+For user-facing command phrases such as `task add`, `task next`, and `task weekly`, read `docs/agent-workflows.md`.
+
 ## Before Work
 
 1. Read `AGENTS.md`.
