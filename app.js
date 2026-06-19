@@ -341,15 +341,6 @@
     fillSelect("#evidenceFilter", config.options.evidenceStates, "Any evidence");
     fillSelect("#detailStatus", config.options.statuses);
     fillSelect("#detailEvidence", config.options.evidenceStates);
-    fillSelect("#createType", config.options.types);
-    fillSelect("#createStatus", config.options.statuses);
-    fillSelect("#createPriority", config.options.priorities);
-    fillSelect("#createEnergy", config.options.energies);
-
-    $("#createType").value = "personal";
-    $("#createStatus").value = "backlog";
-    $("#createPriority").value = "medium";
-    $("#createEnergy").value = "medium";
   }
 
   function renderSourceState() {
@@ -662,36 +653,6 @@
     renderAll();
   }
 
-  function setCreateFieldError(field, message) {
-    const error = document.getElementById(`${field.name}Error`);
-    field.classList.toggle("invalid", Boolean(message));
-    field.setAttribute("aria-invalid", message ? "true" : "false");
-    if (error) {
-      error.textContent = message || "";
-      error.classList.toggle("active", Boolean(message));
-    }
-  }
-
-  function clearCreateErrors(form) {
-    $("#createFormError").classList.remove("active");
-    setCreateFieldError(form.elements.title, "");
-  }
-
-  function validateCreateForm(form) {
-    clearCreateErrors(form);
-    const requiredFields = [
-      [form.elements.title, "Title is required."]
-    ];
-    const invalid = requiredFields.filter(([field, message]) => {
-      const missing = !field.value.trim();
-      if (missing) setCreateFieldError(field, message);
-      return missing;
-    });
-    $("#createFormError").classList.toggle("active", invalid.length > 0);
-    if (invalid.length > 0) invalid[0][0].focus();
-    return invalid.length === 0;
-  }
-
   function setDetailFieldError(field, errorSelector, message) {
     const error = $(errorSelector);
     field.classList.toggle("invalid", Boolean(message));
@@ -825,14 +786,6 @@
     });
   }
 
-  function nextTaskId() {
-    const max = getTasks().reduce((highest, task) => {
-      const match = task.id.match(/^PTB-(\d+)$/);
-      return match ? Math.max(highest, Number(match[1])) : highest;
-    }, 0);
-    return `PTB-${String(max + 1).padStart(3, "0")}`;
-  }
-
   function activity(id, type, text, actor = config.ownerName || "Desmond") {
     return {
       id: `${id}-a-${Date.now()}`,
@@ -843,72 +796,14 @@
     };
   }
 
-  function createTaskFromValues(values) {
-    const id = nextTaskId();
-    const createdAt = nowIso();
-    return {
-      id,
-      title: values.title.trim(),
-      type: values.type || "personal",
-      description: values.description?.trim() || "",
-      status: values.status || "todo",
-      priority: values.priority || "medium",
-      energy: values.energy || "medium",
-      targetDate: values.targetDate || "",
-      dueDate: values.dueDate || "",
-      nextAction: values.nextAction?.trim() || "",
-      notes: "",
-      repeatHint: "none",
-      owner: {
-        type: "human",
-        name: config.ownerName || "Desmond"
-      },
-      agentHelp: {
-        wanted: values.agentHelp === "true",
-        reason: values.agentHelp === "true" ? "Requested during task creation." : ""
-      },
-      agents: [],
-      externalRefs: values.ref ? parseRefList(values.ref) : [],
-      evidence: {
-        state: "not_due",
-        summary: "",
-        impact: "",
-        links: [],
-        reviewCategory: []
-      },
-      questions: [],
-      checklist: [],
-      activity: [
-        {
-          id: `${id}-a-001`,
-          type: "created",
-          text: "Created in task board UI.",
-          actor: config.ownerName || "Desmond",
-          at: createdAt
-        }
-      ],
-      createdAt,
-      updatedAt: createdAt
-    };
-  }
-
-  function roughTaskTitle(rawText) {
-    const firstLine = rawText
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .find(Boolean);
-    const title = firstLine || "Untitled rough task";
-    return title.length > 76 ? `${title.slice(0, 73).trim()}...` : title;
-  }
-
   function agentIntakePrompt(rawText = "") {
     const roughTask = rawText.trim() || "[paste rough task here]";
     return [
-      "Please add or normalize this task in /Users/desmond/Desktop/projects/personal-task-board.",
+      "Please add this task to /Users/desmond/Desktop/projects/personal-task-board.",
       "",
       "Rules:",
       "- Read AGENTS.md and docs/agent-operating-guide.md first.",
-      "- Update data/tasks.json only for this task.",
+      "- Update data/tasks.json only for this task. If a matching task already exists, update it instead of duplicating it.",
       "- Choose sensible type, status, priority, energy, dates, references, questions, and evidence state.",
       "- Keep nextAction empty if the next step is unknown.",
       "- Run npm run validate before finishing.",
@@ -926,45 +821,6 @@
     return prompt.value;
   }
 
-  function createTaskFromRoughText(rawText) {
-    const task = createTaskFromValues({
-      title: roughTaskTitle(rawText),
-      type: "personal",
-      status: "backlog",
-      priority: "medium",
-      energy: "medium",
-      targetDate: "",
-      dueDate: "",
-      description: rawText,
-      nextAction: "",
-      ref: "",
-      agentHelp: "true"
-    });
-    task.notes = "Rough intake. Agent should normalize type, priority, status, dates, references, questions, and next action when assigned.";
-    task.agentHelp.reason = "Needs agent normalization from rough intake.";
-    task.activity[0].text = "Created from rough intake.";
-    return task;
-  }
-
-  function addTaskFromRoughForm() {
-    const input = $("#roughTaskInput");
-    const error = $("#roughTaskError");
-    const rawText = input.value.trim();
-    if (!rawText) {
-      error.classList.add("active");
-      input.focus();
-      return;
-    }
-    const task = createTaskFromRoughText(rawText);
-    board.tasks.unshift(task);
-    input.value = "";
-    updateAgentIntakePrompt();
-    state.selectedId = task.id;
-    markDirty(`Captured rough ${task.id}. Save or export update to persist.`, task.id);
-    error.classList.remove("active");
-    setRoute("detail");
-  }
-
   async function copyAgentIntakePrompt() {
     const prompt = updateAgentIntakePrompt();
     const promptField = $("#agentIntakePrompt");
@@ -977,46 +833,6 @@
       state.console = "Clipboard unavailable. Prompt text selected for manual copy.";
     }
     renderSourceState();
-  }
-
-  function addTaskFromForm(form) {
-    if (!validateCreateForm(form)) return;
-    const values = Object.fromEntries(new FormData(form).entries());
-    const task = createTaskFromValues(values);
-    board.tasks.unshift(task);
-    state.selectedId = task.id;
-    markDirty(`Created ${task.id}. Save or export update to persist.`, task.id);
-    clearCreateErrors(form);
-    form.reset();
-    renderSelectOptions();
-    setRoute("detail");
-  }
-
-  function quickAddTask() {
-    const input = $("#quickAddInput");
-    const title = input.value.trim();
-    if (!title) {
-      input.focus();
-      return;
-    }
-    const task = createTaskFromValues({
-      title,
-      type: "personal",
-      status: "backlog",
-      priority: "medium",
-      energy: "medium",
-      targetDate: "",
-      description: "",
-      nextAction: "",
-      ref: "",
-      agentHelp: "false"
-    });
-    task.activity[0].text = "Created from quick add.";
-    board.tasks.unshift(task);
-    input.value = "";
-    state.selectedId = task.id;
-    markDirty(`Quick-added ${task.id}. Save or export update to persist.`, task.id);
-    renderAll();
   }
 
   function saveDetailEdits() {
@@ -1176,7 +992,6 @@
 
   async function handleAction(action) {
     if (action === "clear-filters") clearFilters();
-    if (action === "quick-add") quickAddTask();
     if (action === "open-tasks-file") await openTasksFile();
     if (action === "save-board") await saveBoard();
     if (action === "export-update") exportUpdate();
@@ -1255,27 +1070,8 @@
       void handleFallbackFileInput(event);
     });
 
-    $("#quickAddInput").addEventListener("keydown", (event) => {
-      if (event.key === "Enter") quickAddTask();
-    });
-
-    $("#roughTaskForm").addEventListener("submit", (event) => {
-      event.preventDefault();
-      addTaskFromRoughForm();
-    });
-
     $("#roughTaskInput").addEventListener("input", () => {
-      $("#roughTaskError").classList.remove("active");
       updateAgentIntakePrompt();
-    });
-
-    $("#createForm").addEventListener("submit", (event) => {
-      event.preventDefault();
-      addTaskFromForm(event.currentTarget);
-    });
-
-    $("#createForm").elements.title.addEventListener("input", (event) => {
-      if (event.target.value.trim()) setCreateFieldError(event.target, "");
     });
 
     $("#detailTitleInput").addEventListener("input", (event) => {

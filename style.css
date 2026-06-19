@@ -87,8 +87,7 @@ select {
 
 .top-actions,
 .btn-row,
-.filter-row,
-.quick-add {
+.filter-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -192,15 +191,8 @@ select {
 
 .workbar {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(260px, 0.9fr);
+  grid-template-columns: minmax(260px, 1fr);
   gap: 10px;
-  align-items: end;
-}
-
-.quick-add-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
   align-items: end;
 }
 
@@ -407,15 +399,6 @@ select {
   margin-bottom: 20px;
 }
 
-.quick-add {
-  align-items: stretch;
-}
-
-.quick-add .input {
-  flex: 1;
-  min-width: 0;
-}
-
 .view-strip {
   display: flex;
   flex-wrap: wrap;
@@ -433,15 +416,13 @@ select {
   padding-top: 10px;
 }
 
-.advanced-filters,
-.advanced-create {
+.advanced-filters {
   border: 1px solid var(--line);
   background: #fff;
   margin-top: 10px;
 }
 
-.advanced-filters summary,
-.advanced-create summary {
+.advanced-filters summary {
   padding: 10px 12px;
   color: var(--muted);
   font-size: 12px;
@@ -450,16 +431,11 @@ select {
   text-transform: uppercase;
 }
 
-.advanced-filters[open] summary,
-.advanced-create[open] summary {
+.advanced-filters[open] summary {
   border-bottom: 1px solid var(--line);
 }
 
 .advanced-filters .filter-grid {
-  padding: 12px;
-}
-
-.structured-form {
   padding: 12px;
 }
 
@@ -855,7 +831,6 @@ label {
     padding: 12px;
   }
 
-  .quick-add-main,
   .tabs,
   .filter-grid,
   .summary-grid,

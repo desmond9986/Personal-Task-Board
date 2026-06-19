@@ -31,7 +31,7 @@ Open:
 http://localhost:4173
 ```
 
-Use `Add task` for rough capture. The structured form is secondary; the intended low-friction flow is to tell Codex/Claude the messy task and let the agent normalize `data/tasks.json`.
+Use `Agent intake` to prepare a prompt for Codex/Claude. The HTML app is mainly for viewing, filtering, sorting, and editing existing tasks; new task creation should happen through an agent updating `data/tasks.json`.
 
 The app tries to auto-load `data/tasks.json` when served locally. Auto-loaded data is a read-only snapshot. For direct file editing, click `Open tasks.json`, select `data/tasks.json`, then use `Save changes`.
 

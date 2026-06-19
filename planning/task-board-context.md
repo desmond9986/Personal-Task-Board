@@ -734,19 +734,19 @@ No advanced query syntax in v1.
 
 ## 23. Task Creation
 
-Tasks can be created with structured form.
+Historical note: this section was superseded by section 45.
 
-Tasks can also be created with quick-add.
+Tasks are now agent-first. The HTML app should prepare/copy an agent intake prompt instead of creating tasks directly.
 
-Quick-add supports rough capture.
+Direct structured creation and quick-add were earlier prototype ideas, not the current product direction.
 
-Example quick-add text:
+Historical rough-task text example:
 
 ```text
 ask manager about above expectation first 90 days
 ```
 
-Quick-add should create a rough task with:
+If this older concept is revisited, confirm with Desmond first. Do not reintroduce direct task creation by default.
 
 - type: personal
 - status: backlog
@@ -969,7 +969,7 @@ Prototype directions should explore different information architectures.
 Each direction should show:
 
 - status grouping
-- quick add concept
+- agent intake concept
 - search
 - saved views
 - task cards
@@ -1319,7 +1319,7 @@ Locked adjustment:
 
 - remove the left sidebar from the board
 - remove summary metric cards from the first screen
-- keep one search field and one quick-add field at the top of the board
+- keep one search field at the top of the board
 - keep saved-view counts, but present them as compact view buttons
 - keep status counts as one plain text line, not a card grid
 - collapse detailed status/type/priority/evidence/sort controls under `Filters and sort`
@@ -1346,7 +1346,7 @@ Locked adjustment:
 - create task can save with an empty next action
 - detail edit can save with an empty next action
 - status changes do not require next action
-- quick add should not invent a fake next action
+- agents and HTML edits should not invent a fake next action
 - validation and import validation must allow empty next action
 - agents should capture uncertainty in `questions` or `notes` instead of forcing `nextAction`
 
@@ -1358,11 +1358,10 @@ Desmond said adding a task through many fields is too much friction. Preferred b
 
 Locked adjustment:
 
-- the create route should be treated as `Add task`, not a heavy creation workflow
-- rough intake is the default UI path
-- structured details should stay available but secondary/collapsed
-- rough intake creates a backlog task with medium priority/energy and blank `nextAction`
-- rough intake marks `agentHelp.wanted=true` with a normalization reason
+- the create route should be treated as `Agent intake`, not a direct creation workflow
+- agent prompt composition is the default UI path
+- structured direct creation should be removed from HTML
+- HTML rough intake should not create backlog tasks directly
 - the app should provide a copyable agent message for Codex/Claude
 - agents should normalize messy chat requests directly into `data/tasks.json` when asked
 
@@ -1374,9 +1373,27 @@ Desmond asked why the top `Save` button exists when he can already add/capture a
 
 Decision:
 
-- adding/capturing a task updates the in-browser board state
+- editing an existing task updates the in-browser board state
+- agent intake only prepares/copies a prompt; it does not create a browser-local task
 - direct persistence still needs a writable `data/tasks.json` handle, because browser file access is permission-based
 - the top save action must not appear as a generic always-available `Save`
 - when no writable file is open, the button should say `Open file to save` and be disabled
 - when a writable file is open and changes exist, it should say `Save changes`
 - export update should also be disabled when there are no changed tasks
+
+## 45. Agent-First Board Model
+
+Date: 2026-06-19.
+
+Desmond changed the product model: this is agent-first. The HTML app is for viewing, filtering, sorting, and editing existing task details. New task creation should go through an agent.
+
+Supersedes direct create, rough capture, structured create, and board quick-add decisions.
+
+Locked adjustment:
+
+- HTML should not directly create new tasks
+- board should focus on search, saved views, filters, sort, and opening task detail
+- agent intake should only compose/copy a prompt for Codex/Claude
+- agents are responsible for adding new tasks to `data/tasks.json`
+- existing task detail editing remains allowed in HTML
+- direct save/export still applies only after edits change browser state
