@@ -166,56 +166,34 @@ Agents should validate after editing tasks.
 
 HTML should be able to load task data.
 
-HTML should be able to edit common fields.
+Historical note: earlier planning allowed HTML editing. This is superseded by sections 46 and 47. Current HTML is view-only.
 
 HTML should not expose every advanced metadata field.
 
-## 6. HTML Save Model
+## 6. HTML View Model
 
-Preferred save path:
+Supersedes the earlier save/export idea.
 
-1. User opens `index.html` in Chrome or Edge.
+Preferred view path:
+
+1. User opens `index.html` directly.
 2. User clicks `Open tasks.json`.
-3. Browser asks permission through the File System Access API.
-4. User selects `data/tasks.json`.
-5. User edits tasks.
-6. User clicks `Save`.
-7. Browser writes directly back to the same local JSON file.
+3. User selects `data/tasks.json`.
+4. HTML loads the selected JSON for viewing only.
+5. User filters, sorts, and opens task detail.
 
-Fallback save path:
+Mutation path:
 
-1. If direct file save is unavailable, user clicks `Export update`.
-2. HTML creates a timestamped update JSON.
-3. Preferred update location is `updates/`.
-4. File name should be timestamped to avoid clashes.
-5. Example:
+1. Desmond asks Codex, Claude, or another local agent to add or update tasks.
+2. The agent edits `data/tasks.json` directly.
+3. The agent runs `npm run validate`.
+4. User opens `tasks.json` again in the HTML viewer to see latest data.
 
-```text
-updates/tasks-update-2026-06-17-142530.json
-```
+Optional server path:
 
-Browser limitation:
-
-- Plain HTML cannot silently save to a specific local folder without permission.
-- Chrome/Edge can use File System Access API.
-- Safari/Firefox may require download/export fallback.
-- If the export lands in Downloads, user or agent can move it into `updates/`.
-
-Import path:
-
-```bash
-npm run import-update updates/tasks-update-2026-06-17-142530.json
-```
-
-Import script behavior:
-
-1. Validate the update file.
-2. Validate existing `data/tasks.json`.
-3. Backup current `data/tasks.json` to `backups/`.
-4. Merge update into real tasks by task `id`.
-5. Validate merged result.
-6. Write merged result to `data/tasks.json`.
-7. Print summary.
+- `npm run serve` may be used only as a convenience for browser auto-load.
+- localhost is not required for normal use.
+- there is no browser-side save, export, or merge flow.
 
 ## 7. Merge Rules
 
@@ -1420,3 +1398,17 @@ Future agent guardrail:
 
 - do not reintroduce browser-side task mutation unless Desmond explicitly reverses this decision
 - if Desmond asks to add/change a task, update `data/tasks.json` as an agent and run `npm run validate`
+
+## 47. Direct File Mode First
+
+Date: 2026-06-19.
+
+Desmond clarified that because the HTML is view-only, it should not require localhost or hosting.
+
+Locked adjustment:
+
+- default usage is opening `index.html` directly from the local filesystem
+- the user clicks `Open tasks.json` and selects `data/tasks.json`
+- localhost is optional only for browser auto-load convenience
+- README and UI copy should not present `npm run serve` as the main path
+- agents still edit `data/tasks.json`; the viewer only reloads or reopens the file

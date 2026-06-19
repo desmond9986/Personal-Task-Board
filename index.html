@@ -110,10 +110,10 @@
                 </thead>
                 <tbody id="taskRows"></tbody>
               </table>
-              <div class="empty" id="emptyState">No tasks match this filter. Clear filters or open a task JSON file.</div>
+              <div class="empty" id="emptyState">Open tasks.json to view tasks. If a file is already open, no tasks match this filter.</div>
             </div>
             <div class="mobile-task-list" id="mobileTaskCards"></div>
-            <div class="empty" id="mobileEmptyState">No tasks match this filter. Clear filters or open a task JSON file.</div>
+            <div class="empty" id="mobileEmptyState">Open tasks.json to view tasks. If a file is already open, no tasks match this filter.</div>
           </article>
         </section>
 
@@ -224,14 +224,18 @@
             <div class="panel-head">
               <div>
                 <h2 class="panel-title">Sync and config</h2>
-                <p class="panel-copy">JSON is the source of truth. This HTML is a viewer; agents update the task file.</p>
+                <p class="panel-copy">Open this HTML directly, choose tasks.json, and use the page only as a viewer.</p>
               </div>
             </div>
             <div class="panel-body">
               <div class="sync-grid">
                 <div class="sync-card">
+                  <h3>Open local file</h3>
+                  <p><span class="mono">index.html -> Open tasks.json</span><br /><span id="fileStatus">Not opened yet.</span></p>
+                </div>
+                <div class="sync-card">
                   <h3>Source of truth</h3>
-                  <p><span class="mono">data/tasks.json</span><br /><span id="fileStatus">Not opened yet.</span></p>
+                  <p><span class="mono">data/tasks.json</span><br />The viewer reads this file; agents are responsible for changing it.</p>
                 </div>
                 <div class="sync-card">
                   <h3>Agent write path</h3>
@@ -251,7 +255,7 @@
                 </div>
                 <div class="sync-card">
                   <h3>Refresh view</h3>
-                  <p><span class="mono">reload / Open tasks.json</span><br />After an agent changes JSON, refresh the page or open the file again.</p>
+                  <p><span class="mono">Open tasks.json again</span><br />After an agent changes JSON, reload the file to see the latest tasks.</p>
                 </div>
               </div>
               <div class="btn-row" style="margin-top: 14px;">

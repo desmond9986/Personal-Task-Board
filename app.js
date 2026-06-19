@@ -110,13 +110,13 @@
 
     try {
       board = await fetchJson("data/tasks.json");
-      state.sourceMode = "read-only auto-load: data/tasks.json";
+      state.sourceMode = "loaded data/tasks.json";
       fileLabel = "data/tasks.json";
-      state.console = "Loaded read-only data/tasks.json. Agents should update the JSON; refresh or open the file again to view changes.";
+      state.console = "Loaded data/tasks.json for viewing. In direct file mode, use Open tasks.json when the browser cannot auto-load local JSON.";
     } catch {
       board = structuredClone(emptyBoard);
-      state.sourceMode = "empty until tasks.json is opened";
-      state.console = "Could not auto-load data/tasks.json. Click Open tasks.json.";
+      state.sourceMode = "waiting for Open tasks.json";
+      state.console = "Open index.html directly, then click Open tasks.json to view data/tasks.json.";
     }
 
     ensureBoardShape();

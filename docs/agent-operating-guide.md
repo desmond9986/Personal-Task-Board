@@ -12,7 +12,7 @@ This guide is for Codex, Claude, and future local agents using the task board.
 
 ## Task Intake
 
-When Desmond gives a messy task in chat, normalize it into `data/tasks.json` instead of asking him to fill the HTML form.
+When Desmond gives a messy task in chat, normalize it into `data/tasks.json` instead of asking him to use the HTML viewer.
 
 - choose conservative defaults for type, status, priority, energy, dates, refs, and evidence state
 - keep `nextAction` empty when the next step is unknown
@@ -74,6 +74,8 @@ Then summarize:
 ## HTML Viewer
 
 The browser app is only for viewing, filtering, sorting, and opening task detail. It does not create, edit, save, export, or merge task data.
+
+The normal user flow is direct file mode: open `index.html`, click `Open tasks.json`, then select `data/tasks.json`. Do not require localhost unless Desmond explicitly wants browser auto-load.
 
 If Desmond asks to add or change a task, edit `data/tasks.json` directly as the agent, keep the change scoped to the requested task, and run `npm run validate`.
 

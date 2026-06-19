@@ -13,25 +13,19 @@ This repo intentionally starts simple:
 
 ## Use The App
 
-Install dependencies once:
-
-```bash
-npm install
-```
-
-Run a local static server:
-
-```bash
-npm run serve
-```
-
-Open:
+Open the local HTML file directly:
 
 ```text
-http://localhost:4173
+/Users/desmond/Desktop/projects/personal-task-board/index.html
 ```
 
-The HTML app is view-only. Use it to load `data/tasks.json`, filter/sort tasks, and inspect task details. Do not add, edit, save, or export tasks from the browser.
+Then click `Open tasks.json` and select:
+
+```text
+/Users/desmond/Desktop/projects/personal-task-board/data/tasks.json
+```
+
+The HTML app is view-only. Use it to load the JSON file, filter/sort tasks, and inspect task details. Do not add, edit, save, or export tasks from the browser.
 
 Task changes should happen through an agent or a direct JSON edit:
 
@@ -42,6 +36,19 @@ Run npm run validate before finishing.
 ```
 
 After an agent changes JSON, refresh the page or click `Open tasks.json` again to view the latest file.
+
+Localhost is optional. Use it only if you want browser auto-load of `data/tasks.json`:
+
+```bash
+npm install
+npm run serve
+```
+
+Then open:
+
+```text
+http://localhost:4173
+```
 
 ## Validate
 
