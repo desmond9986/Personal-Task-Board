@@ -10,6 +10,17 @@ This guide is for Codex, Claude, and future local agents using the task board.
 4. Identify the task ID or title Desmond assigned.
 5. Do not self-assign unless Desmond explicitly asked you to work on that task.
 
+## Task Intake
+
+When Desmond gives a messy task in chat, normalize it into `data/tasks.json` instead of asking him to fill the HTML form.
+
+- choose conservative defaults for type, status, priority, energy, dates, refs, and evidence state
+- keep `nextAction` empty when the next step is unknown
+- use `questions` or `notes` for uncertainty
+- set `agentHelp.wanted` only when Desmond is asking an agent to help normalize or work on the task
+- ask at most one clarifying question when the task cannot be represented safely
+- run `npm run validate`
+
 ## During Work
 
 If explicitly assigned, update `agents[]` with:

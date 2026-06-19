@@ -347,7 +347,7 @@
     fillSelect("#createEnergy", config.options.energies);
 
     $("#createType").value = "personal";
-    $("#createStatus").value = "todo";
+    $("#createStatus").value = "backlog";
     $("#createPriority").value = "medium";
     $("#createEnergy").value = "medium";
   }
@@ -876,6 +876,93 @@
     };
   }
 
+  function roughTaskTitle(rawText) {
+    const firstLine = rawText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find(Boolean);
+    const title = firstLine || "Untitled rough task";
+    return title.length > 76 ? `${title.slice(0, 73).trim()}...` : title;
+  }
+
+  function agentIntakePrompt(rawText = "") {
+    const roughTask = rawText.trim() || "[paste rough task here]";
+    return [
+      "Please add or normalize this task in /Users/desmond/Desktop/projects/personal-task-board.",
+      "",
+      "Rules:",
+      "- Read AGENTS.md and docs/agent-operating-guide.md first.",
+      "- Update data/tasks.json only for this task.",
+      "- Choose sensible type, status, priority, energy, dates, references, questions, and evidence state.",
+      "- Keep nextAction empty if the next step is unknown.",
+      "- Run npm run validate before finishing.",
+      "",
+      "Rough task:",
+      roughTask
+    ].join("\n");
+  }
+
+  function updateAgentIntakePrompt() {
+    const prompt = $("#agentIntakePrompt");
+    if (!prompt) return "";
+    const rawText = $("#roughTaskInput")?.value || "";
+    prompt.value = agentIntakePrompt(rawText);
+    return prompt.value;
+  }
+
+  function createTaskFromRoughText(rawText) {
+    const task = createTaskFromValues({
+      title: roughTaskTitle(rawText),
+      type: "personal",
+      status: "backlog",
+      priority: "medium",
+      energy: "medium",
+      targetDate: "",
+      dueDate: "",
+      description: rawText,
+      nextAction: "",
+      ref: "",
+      agentHelp: "true"
+    });
+    task.notes = "Rough intake. Agent should normalize type, priority, status, dates, references, questions, and next action when assigned.";
+    task.agentHelp.reason = "Needs agent normalization from rough intake.";
+    task.activity[0].text = "Created from rough intake.";
+    return task;
+  }
+
+  function addTaskFromRoughForm() {
+    const input = $("#roughTaskInput");
+    const error = $("#roughTaskError");
+    const rawText = input.value.trim();
+    if (!rawText) {
+      error.classList.add("active");
+      input.focus();
+      return;
+    }
+    const task = createTaskFromRoughText(rawText);
+    board.tasks.unshift(task);
+    input.value = "";
+    updateAgentIntakePrompt();
+    state.selectedId = task.id;
+    markDirty(`Captured rough ${task.id}. Save or export update to persist.`, task.id);
+    error.classList.remove("active");
+    setRoute("detail");
+  }
+
+  async function copyAgentIntakePrompt() {
+    const prompt = updateAgentIntakePrompt();
+    const promptField = $("#agentIntakePrompt");
+    try {
+      await navigator.clipboard.writeText(prompt);
+      state.console = "Agent message copied.";
+    } catch {
+      promptField.focus();
+      promptField.select();
+      state.console = "Clipboard unavailable. Prompt text selected for manual copy.";
+    }
+    renderSourceState();
+  }
+
   function addTaskFromForm(form) {
     if (!validateCreateForm(form)) return;
     const values = Object.fromEntries(new FormData(form).entries());
@@ -1080,6 +1167,7 @@
     if (action === "save-detail-edits") saveDetailEdits();
     if (action === "save-detail-status") saveDetailStatus();
     if (action === "mark-done") markDone();
+    if (action === "copy-agent-intake") await copyAgentIntakePrompt();
   }
 
   function bindEvents() {
@@ -1155,6 +1243,16 @@
       if (event.key === "Enter") quickAddTask();
     });
 
+    $("#roughTaskForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      addTaskFromRoughForm();
+    });
+
+    $("#roughTaskInput").addEventListener("input", () => {
+      $("#roughTaskError").classList.remove("active");
+      updateAgentIntakePrompt();
+    });
+
     $("#createForm").addEventListener("submit", (event) => {
       event.preventDefault();
       addTaskFromForm(event.currentTarget);
@@ -1170,6 +1268,8 @@
         $("#detailEditError").classList.remove("active");
       }
     });
+
+    updateAgentIntakePrompt();
 
     window.addEventListener("hashchange", () => {
       const nextRoute = window.location.hash.replace("#", "");

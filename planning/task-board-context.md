@@ -1349,3 +1349,19 @@ Locked adjustment:
 - quick add should not invent a fake next action
 - validation and import validation must allow empty next action
 - agents should capture uncertainty in `questions` or `notes` instead of forcing `nextAction`
+
+## 43. Low-Friction Agent Intake
+
+Date: 2026-06-19.
+
+Desmond said adding a task through many fields is too much friction. Preferred behavior: communicate the rough task to an agent, then let the agent fill proper details.
+
+Locked adjustment:
+
+- the create route should be treated as `Add task`, not a heavy creation workflow
+- rough intake is the default UI path
+- structured details should stay available but secondary/collapsed
+- rough intake creates a backlog task with medium priority/energy and blank `nextAction`
+- rough intake marks `agentHelp.wanted=true` with a normalization reason
+- the app should provide a copyable agent message for Codex/Claude
+- agents should normalize messy chat requests directly into `data/tasks.json` when asked

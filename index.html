@@ -20,7 +20,7 @@
         <button class="btn" type="button" data-action="open-tasks-file">Open tasks.json</button>
         <button class="btn primary" type="button" data-action="save-board">Save</button>
         <button class="btn" type="button" data-action="export-update">Export update</button>
-        <button class="btn primary" type="button" data-route-button="create">Create task</button>
+        <button class="btn primary" type="button" data-route-button="create">Add task</button>
       </div>
       <input class="sr-only" id="tasksFileInput" type="file" accept="application/json,.json" />
     </header>
@@ -30,7 +30,7 @@
         <nav class="tabs" aria-label="Task board sections">
           <button class="tab active" type="button" data-route-button="board">Board</button>
           <button class="tab" type="button" data-route-button="detail">Task detail</button>
-          <button class="tab" type="button" data-route-button="create">Create task</button>
+          <button class="tab" type="button" data-route-button="create">Add task</button>
           <button class="tab" type="button" data-route-button="sync">Sync/config</button>
         </nav>
 
@@ -43,7 +43,7 @@
               </div>
               <div class="btn-row">
                 <button class="btn" type="button" data-action="clear-filters">Clear filters</button>
-                <button class="btn primary" type="button" data-route-button="create">Create task</button>
+                <button class="btn primary" type="button" data-route-button="create">Add task</button>
               </div>
             </div>
 
@@ -122,10 +122,10 @@
                 </thead>
                 <tbody id="taskRows"></tbody>
               </table>
-              <div class="empty" id="emptyState">No tasks match this filter. Clear filters, open data/tasks.json, or create a new task.</div>
+              <div class="empty" id="emptyState">No tasks match this filter. Clear filters, open data/tasks.json, or add a new task.</div>
             </div>
             <div class="mobile-task-list" id="mobileTaskCards"></div>
-            <div class="empty" id="mobileEmptyState">No tasks match this filter. Clear filters, open data/tasks.json, or create a new task.</div>
+            <div class="empty" id="mobileEmptyState">No tasks match this filter. Clear filters, open data/tasks.json, or add a new task.</div>
           </article>
         </section>
 
@@ -138,7 +138,7 @@
               </div>
               <div class="btn-row">
                 <button class="btn" type="button" data-route-button="board">Back to board</button>
-                <button class="btn primary" type="button" data-route-button="create">Create task</button>
+                <button class="btn primary" type="button" data-route-button="create">Add task</button>
               </div>
             </div>
             <div class="panel-body detail-main">
@@ -269,70 +269,93 @@
           <article class="panel">
             <div class="panel-head">
               <div>
-                <h2 class="panel-title">Create task</h2>
-                <p class="panel-copy">Create a JSON task with the required fields agents need. Save or export after adding.</p>
+                <h2 class="panel-title">Add task</h2>
+                <p class="panel-copy">Capture rough work first. Agents can normalize details later.</p>
               </div>
             </div>
-            <form class="panel-body" id="createForm" novalidate>
-              <div class="form-banner" id="createFormError">Please fill the required fields before adding the task.</div>
-              <div class="field-grid">
+            <div class="panel-body create-layout">
+              <form class="rough-intake" id="roughTaskForm" novalidate>
+                <div class="form-banner" id="roughTaskError">Write the rough task first.</div>
                 <label>
-                  Title *
-                  <input class="input" name="title" required aria-describedby="titleError" placeholder="Payment edge case prompt draft" />
-                  <span class="field-error" id="titleError">Title is required.</span>
+                  Rough task
+                  <textarea class="textarea intake-textarea" id="roughTaskInput" placeholder="Example: onboarding to Ryt, pick up fast, manager questions, payment domain, weekly summary..."></textarea>
+                  <span class="field-help">Messy is fine. First line becomes the title; the full text becomes description.</span>
                 </label>
-                <label>
-                  Type
-                  <select class="select" name="type" id="createType"></select>
+                <div class="btn-row create-actions">
+                  <button class="btn primary" type="submit">Capture rough task</button>
+                  <button class="btn" type="button" data-action="copy-agent-intake">Copy agent message</button>
+                  <button class="btn" type="button" data-route-button="board">Cancel</button>
+                </div>
+                <label class="agent-prompt-box">
+                  Agent message
+                  <textarea class="textarea prompt-textarea" id="agentIntakePrompt" readonly></textarea>
                 </label>
-                <label>
-                  Status
-                  <select class="select" name="status" id="createStatus"></select>
-                </label>
-                <label>
-                  Priority
-                  <select class="select" name="priority" id="createPriority"></select>
-                </label>
-                <label>
-                  Energy
-                  <select class="select" name="energy" id="createEnergy"></select>
-                </label>
-                <label>
-                  Target date
-                  <input class="input" name="targetDate" type="date" />
-                </label>
-                <label>
-                  Due date
-                  <input class="input" name="dueDate" type="date" />
-                </label>
-                <label>
-                  Reference id or link
-                  <input class="input" name="ref" placeholder="RYT-123 or https://..." />
-                </label>
-                <label>
-                  Agent help
-                  <select class="select" name="agentHelp">
-                    <option value="false" selected>No</option>
-                    <option value="true">Yes</option>
-                  </select>
-                </label>
-              </div>
-              <div class="field-grid" style="margin-top: 12px;">
-                <label>
-                  Description
-                  <textarea class="textarea" name="description" placeholder="What is this task about?"></textarea>
-                </label>
-                <label>
-                  Next action (optional)
-                  <textarea class="textarea" name="nextAction" aria-describedby="nextActionHelp" placeholder="Leave empty if the next step is unknown."></textarea>
-                  <span class="field-help" id="nextActionHelp">You can add this later from task detail.</span>
-                </label>
-              </div>
-              <div class="btn-row" style="margin-top: 14px;">
-                <button class="btn primary" type="submit">Add task</button>
-                <button class="btn" type="button" data-route-button="board">Cancel</button>
-              </div>
-            </form>
+              </form>
+
+              <details class="advanced-create">
+                <summary>Structured details</summary>
+                <form class="structured-form" id="createForm" novalidate>
+                  <div class="form-banner" id="createFormError">Please fill the required fields before adding the task.</div>
+                  <div class="field-grid">
+                    <label>
+                      Title *
+                      <input class="input" name="title" required aria-describedby="titleError" placeholder="Payment edge case prompt draft" />
+                      <span class="field-error" id="titleError">Title is required.</span>
+                    </label>
+                    <label>
+                      Type
+                      <select class="select" name="type" id="createType"></select>
+                    </label>
+                    <label>
+                      Status
+                      <select class="select" name="status" id="createStatus"></select>
+                    </label>
+                    <label>
+                      Priority
+                      <select class="select" name="priority" id="createPriority"></select>
+                    </label>
+                    <label>
+                      Energy
+                      <select class="select" name="energy" id="createEnergy"></select>
+                    </label>
+                    <label>
+                      Target date
+                      <input class="input" name="targetDate" type="date" />
+                    </label>
+                    <label>
+                      Due date
+                      <input class="input" name="dueDate" type="date" />
+                    </label>
+                    <label>
+                      Reference id or link
+                      <input class="input" name="ref" placeholder="RYT-123 or https://..." />
+                    </label>
+                    <label>
+                      Agent help
+                      <select class="select" name="agentHelp">
+                        <option value="false" selected>No</option>
+                        <option value="true">Yes</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="field-grid" style="margin-top: 12px;">
+                    <label>
+                      Description
+                      <textarea class="textarea" name="description" placeholder="What is this task about?"></textarea>
+                    </label>
+                    <label>
+                      Next action (optional)
+                      <textarea class="textarea" name="nextAction" aria-describedby="nextActionHelp" placeholder="Leave empty if the next step is unknown."></textarea>
+                      <span class="field-help" id="nextActionHelp">You can add this later from task detail.</span>
+                    </label>
+                  </div>
+                  <div class="btn-row" style="margin-top: 14px;">
+                    <button class="btn primary" type="submit">Add structured task</button>
+                    <button class="btn" type="button" data-route-button="board">Cancel</button>
+                  </div>
+                </form>
+              </details>
+            </div>
           </article>
         </section>
 

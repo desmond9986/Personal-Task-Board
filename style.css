@@ -277,6 +277,36 @@ select {
   line-height: 1.5;
 }
 
+.create-layout {
+  display: grid;
+  gap: 12px;
+}
+
+.rough-intake {
+  display: grid;
+  gap: 12px;
+}
+
+.intake-textarea {
+  min-height: 150px;
+}
+
+.prompt-textarea {
+  min-height: 160px;
+  background: var(--surface-soft);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.agent-prompt-box {
+  margin-top: 2px;
+}
+
+.create-actions {
+  align-items: stretch;
+}
+
 .btn {
   padding: 8px 11px;
   font-size: 12px;
@@ -396,13 +426,15 @@ select {
   padding-top: 10px;
 }
 
-.advanced-filters {
+.advanced-filters,
+.advanced-create {
   border: 1px solid var(--line);
   background: #fff;
   margin-top: 10px;
 }
 
-.advanced-filters summary {
+.advanced-filters summary,
+.advanced-create summary {
   padding: 10px 12px;
   color: var(--muted);
   font-size: 12px;
@@ -411,11 +443,16 @@ select {
   text-transform: uppercase;
 }
 
-.advanced-filters[open] summary {
+.advanced-filters[open] summary,
+.advanced-create[open] summary {
   border-bottom: 1px solid var(--line);
 }
 
 .advanced-filters .filter-grid {
+  padding: 12px;
+}
+
+.structured-form {
   padding: 12px;
 }
 
