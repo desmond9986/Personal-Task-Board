@@ -1,11 +1,16 @@
 ---
 name: task-add
 description: Add or normalize a messy Personal Task Board task into data/tasks.json. Use when Desmond says task add, add task, capture this, remember this, or gives a rough Ryt/onboarding/workflow task.
+disable-model-invocation: true
 ---
 
 # Task Add
 
 Use this plugin command to convert a messy request into a valid task in `data/tasks.json`.
+
+User argument: `$ARGUMENTS`
+
+Operate on the project/worktree that contains `data/tasks.json`. If it is missing, ask Desmond for the task-board repo path before writing; do not use Claude's plugin cache as task storage.
 
 Follow `docs/agent-workflows.md` section `task add: <rough task>`.
 

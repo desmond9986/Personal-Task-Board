@@ -1,0 +1,19 @@
+{
+  "name": "personal-task-board",
+  "description": "Claude Code skills for Desmond's local JSON task board workflows.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Desmond"
+  },
+  "homepage": "https://github.com/desmond9986/Personal-Task-Board",
+  "repository": "https://github.com/desmond9986/Personal-Task-Board",
+  "license": "Proprietary",
+  "keywords": [
+    "tasks",
+    "productivity",
+    "agents",
+    "json",
+    "workflow",
+    "career-review"
+  ]
+}

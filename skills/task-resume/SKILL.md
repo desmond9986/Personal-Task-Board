@@ -1,11 +1,16 @@
 ---
 name: task-resume
 description: Build a context-switch resume pack for one Personal Task Board task. Use when Desmond says resume task, continue task, remind me where I left off, or pick this back up.
+disable-model-invocation: true
 ---
 
 # Task Resume
 
 Use this plugin command when Desmond is returning to a task after context switching.
+
+User argument: `$ARGUMENTS`
+
+Operate on the project/worktree that contains `data/tasks.json`. If it is missing, ask Desmond for the task-board repo path before writing; do not use Claude's plugin cache as task storage.
 
 Follow `docs/agent-workflows.md` section `task resume <id or title>`.
 

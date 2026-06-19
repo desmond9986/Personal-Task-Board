@@ -1,11 +1,16 @@
 ---
 name: task-evidence
 description: Capture sanitized performance-review evidence for a Personal Task Board task. Use when Desmond says task evidence, add evidence, impact, review proof, or manager evidence.
+disable-model-invocation: true
 ---
 
 # Task Evidence
 
 Use this plugin command to update task evidence after useful work, risk reduction, learning, or impact.
+
+User argument: `$ARGUMENTS`
+
+Operate on the project/worktree that contains `data/tasks.json`. If it is missing, ask Desmond for the task-board repo path before writing; do not use Claude's plugin cache as task storage.
 
 Follow `docs/agent-workflows.md` section `task evidence <id or title>: <what happened / impact>`.
 

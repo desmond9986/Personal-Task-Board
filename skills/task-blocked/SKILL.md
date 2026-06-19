@@ -1,11 +1,16 @@
 ---
 name: task-blocked
 description: Review blocked, waiting, and need-discussion tasks. Use when Desmond asks what is blocked, what to ask, what is waiting, or how to unblock tasks.
+disable-model-invocation: true
 ---
 
 # Task Blocked
 
 Use this plugin command to find and explain blocked or unclear work.
+
+If the user provides arguments, treat `$ARGUMENTS` as focus constraints.
+
+Operate on the project/worktree that contains `data/tasks.json`. If it is missing, ask Desmond for the task-board repo path before writing; do not use Claude's plugin cache as task storage.
 
 Follow `docs/agent-workflows.md` section `task blocked`.
 

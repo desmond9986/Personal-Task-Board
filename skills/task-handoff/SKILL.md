@@ -1,11 +1,16 @@
 ---
 name: task-handoff
 description: Explicitly hand a Personal Task Board task to the current agent. Use only when Desmond asks an agent to pick up, hand off, or work on a specific task.
+disable-model-invocation: true
 ---
 
 # Task Handoff
 
 Use this plugin command only when Desmond explicitly asks an agent to work on a task.
+
+User argument: `$ARGUMENTS`
+
+Operate on the project/worktree that contains `data/tasks.json`. If it is missing, ask Desmond for the task-board repo path before writing; do not use Claude's plugin cache as task storage.
 
 Follow `docs/agent-workflows.md` section `task handoff <id or title> to agent`.
 

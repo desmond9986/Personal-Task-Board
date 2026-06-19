@@ -1465,3 +1465,28 @@ Future agent guardrail:
 - when adding a new plugin skill, prefer one that reduces repeated manual reasoning
 - avoid commands that only create more metadata, ceremony, or dashboards
 - if a command cannot be explained in one sentence, it is probably too complicated for the current phase
+
+## 50. Claude Code Plugin Support
+
+Date: 2026-06-20.
+
+Desmond clarified that Ryt mainly uses Claude, so the task board should also work as a Claude Code plugin instead of being Codex-only.
+
+Research checked against the current Claude Code docs:
+
+- Claude Code plugins are self-contained directories with a `.claude-plugin/plugin.json` manifest and components at the plugin root.
+- Plugin skills live in `skills/<skill-name>/SKILL.md` by default.
+- Plugin skills are invoked in Claude Code with namespaced slash commands such as `/personal-task-board:task-add`.
+- `disable-model-invocation: true` is appropriate for manual command workflows so Claude does not auto-run task mutations.
+- `$ARGUMENTS` should be included in skill text when the user input after the slash command matters.
+- Local plugin development can be tested with `claude --plugin-dir /Users/desmond/Desktop/projects/personal-task-board`; `/reload-plugins` reloads changed plugin files during a session.
+- Claude should be launched from the task-board repo, or given the task-board repo path, because `data/tasks.json` is the real source of truth.
+- Do not write task state into Claude's plugin cache.
+- MCP, hooks, and monitors are intentionally not added yet. They are useful later only if repeated external-tool sync becomes real friction.
+
+Implemented direction:
+
+- add `.claude-plugin/plugin.json`
+- keep the shared `skills/` directory as the command source for both Codex and Claude Code
+- document Claude slash-command usage separately from Codex usage
+- keep HTML view-only and keep JSON edits agent-driven

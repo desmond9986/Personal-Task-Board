@@ -37,9 +37,38 @@ Run npm run validate before finishing.
 
 After an agent changes JSON, refresh the page or click `Open tasks.json` again to view the latest file.
 
-## Plugin Commands
+## Agent Plugin Commands
 
-This repo is also a Codex plugin. After installing/reloading the plugin and starting a new thread, use these plugin skills:
+This repo is both a Codex plugin and a Claude Code plugin. The same `skills/` workflows are shared, but the invocation style is different.
+
+Claude Code local test:
+
+```bash
+cd /Users/desmond/Desktop/projects/personal-task-board
+claude --plugin-dir .
+```
+
+Then use slash skills inside Claude Code:
+
+```text
+/personal-task-board:task-add ask manager what good ramp-up looks like in first 30 days
+/personal-task-board:task-update PTB-001 manager said focus on payment edge cases first
+/personal-task-board:task-next
+/personal-task-board:task-blocked
+/personal-task-board:task-resume PTB-001
+/personal-task-board:task-weekly
+/personal-task-board:task-evidence PTB-001 reduced timeout uncertainty by confirming source of truth
+/personal-task-board:task-review-board
+/personal-task-board:task-handoff PTB-001 to agent
+```
+
+After changing plugin files during a Claude Code session, run:
+
+```text
+/reload-plugins
+```
+
+Codex plugin skills use the same names without the leading slash:
 
 ```text
 personal-task-board:task-add
@@ -60,6 +89,7 @@ Use personal-task-board:task-add to capture this: ask manager what good ramp-up 
 ```
 
 These skills operate on `data/tasks.json`; they are not buttons in the HTML viewer.
+Run Claude Code from the task-board repo, or explicitly tell the agent the task-board repo path. Do not use Claude's plugin cache as task storage.
 
 Localhost is optional. Use it only if you want browser auto-load of `data/tasks.json`:
 
@@ -95,7 +125,8 @@ Validation checks:
 - `style.css`: locked Design 1 visual system
 - `app.js`: view-only board UI, filtering, sorting, detail rendering, and JSON file loading
 - `.codex-plugin/plugin.json`: Codex plugin manifest
-- `skills/`: plugin command skills for task add/update/triage/summary/evidence workflows
+- `.claude-plugin/plugin.json`: Claude Code plugin manifest
+- `skills/`: shared Codex and Claude Code plugin skills for task add/update/triage/summary/evidence workflows
 - `data/tasks.json`: task source of truth
 - `data/config.json`: statuses, views, sync guardrails, sensitive-data policy
 - `schemas/`: JSON Schema contracts

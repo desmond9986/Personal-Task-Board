@@ -2,7 +2,9 @@
 
 This file is the command menu for agents working with Desmond's Personal Task Board.
 
-The repo now exposes these workflows as Codex plugin skills. After the plugin is installed and a new thread starts, invoke them by naming the plugin skill, for example:
+The repo exposes these workflows as plugin skills for both Codex and Claude Code.
+
+Codex style:
 
 ```text
 Use personal-task-board:task-add to capture this: ask manager how to ramp up fast
@@ -10,9 +12,17 @@ Use personal-task-board:task-next
 Use personal-task-board:task-weekly
 ```
 
+Claude Code style:
+
+```text
+/personal-task-board:task-add ask manager how to ramp up fast
+/personal-task-board:task-next
+/personal-task-board:task-weekly
+```
+
 Plain phrases such as `task add: ...` still work as fallback language, but the plugin command surface is the skill set under `skills/`.
 
-These are not browser UI commands and not an MCP tool contract yet. They are low-friction plugin skills Desmond can send to Codex, Claude, or a future local orchestrator. The agent should operate on `data/tasks.json`, keep the HTML viewer read-only, and run validation after any write.
+These are not browser UI commands and not an MCP tool contract yet. They are low-friction plugin skills Desmond can send to Codex, Claude Code, or a future local orchestrator. The agent should operate on `data/tasks.json`, keep the HTML viewer read-only, and run validation after any write.
 
 ## Operating Rules
 
@@ -21,11 +31,13 @@ Before any command:
 1. Read `AGENTS.md`.
 2. Read `data/config.json`.
 3. Read `data/tasks.json`.
-4. Keep the change scoped to the requested task or workflow.
-5. Do not self-assign unless Desmond explicitly asks you to work on the task.
-6. Do not invent `nextAction`; leave it empty when the next step is unknown.
-7. Do not add sensitive company/customer data.
-8. Run `npm run validate` after editing JSON.
+4. Confirm the current project/worktree contains `data/tasks.json`; if not, ask for the task-board repo path before writing.
+5. Do not use Claude's plugin cache as task storage.
+6. Keep the change scoped to the requested task or workflow.
+7. Do not self-assign unless Desmond explicitly asks you to work on the task.
+8. Do not invent `nextAction`; leave it empty when the next step is unknown.
+9. Do not add sensitive company/customer data.
+10. Run `npm run validate` after editing JSON.
 
 Default response style:
 
@@ -38,15 +50,15 @@ Default response style:
 
 Actual plugin skills:
 
-- `personal-task-board:task-add`
-- `personal-task-board:task-update`
-- `personal-task-board:task-next`
-- `personal-task-board:task-blocked`
-- `personal-task-board:task-resume`
-- `personal-task-board:task-weekly`
-- `personal-task-board:task-evidence`
-- `personal-task-board:task-review-board`
-- `personal-task-board:task-handoff`
+- Codex: `personal-task-board:task-add`; Claude Code: `/personal-task-board:task-add`
+- Codex: `personal-task-board:task-update`; Claude Code: `/personal-task-board:task-update`
+- Codex: `personal-task-board:task-next`; Claude Code: `/personal-task-board:task-next`
+- Codex: `personal-task-board:task-blocked`; Claude Code: `/personal-task-board:task-blocked`
+- Codex: `personal-task-board:task-resume`; Claude Code: `/personal-task-board:task-resume`
+- Codex: `personal-task-board:task-weekly`; Claude Code: `/personal-task-board:task-weekly`
+- Codex: `personal-task-board:task-evidence`; Claude Code: `/personal-task-board:task-evidence`
+- Codex: `personal-task-board:task-review-board`; Claude Code: `/personal-task-board:task-review-board`
+- Codex: `personal-task-board:task-handoff`; Claude Code: `/personal-task-board:task-handoff`
 
 ### `task add: <rough task>`
 

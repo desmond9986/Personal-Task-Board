@@ -1,11 +1,16 @@
 ---
 name: task-update
 description: Update an existing Personal Task Board task after new information, progress, decisions, or blockers. Use when Desmond says task update, update task, mark progress, or gives new info for a task.
+disable-model-invocation: true
 ---
 
 # Task Update
 
 Use this plugin command to make a scoped update to an existing task in `data/tasks.json`.
+
+User argument: `$ARGUMENTS`
+
+Operate on the project/worktree that contains `data/tasks.json`. If it is missing, ask Desmond for the task-board repo path before writing; do not use Claude's plugin cache as task storage.
 
 Follow `docs/agent-workflows.md` section `task update <id or title>: <new info>`.
 
