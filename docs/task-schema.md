@@ -46,7 +46,7 @@ Every task has:
 
 ## External References
 
-Use structured refs:
+Use structured `externalRefs`:
 
 ```json
 {

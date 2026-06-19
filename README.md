@@ -11,6 +11,18 @@ This repo intentionally starts simple:
 - update-file merge with `npm run import-update`
 - no React, Next.js, Vite, MCP, ticket-system sync, or background automation in v1
 
+## First Setup
+
+Run this once after cloning or copying the repo to a new machine:
+
+```bash
+cd /Users/desmond/Desktop/projects/personal-task-board
+npm install
+npm run validate
+```
+
+`npm install` is needed for validation dependencies. Agents should not write task changes until `npm run validate` works.
+
 ## Use The App
 
 Open the local HTML file directly:
@@ -39,24 +51,47 @@ After an agent changes JSON, refresh the page or click `Open tasks.json` again t
 
 ## Agent Plugin Commands
 
-This repo is both a Codex plugin and a Claude Code plugin. The same `skills/` workflows are shared, but the invocation style is different.
+This repo is both a Codex plugin and a Claude Code plugin. The workflow behavior is shared, but each platform has its own skill entrypoint folder:
 
-Claude Code local test:
+- Codex plugin skills: `codex-skills/`
+- Claude Code plugin skills: `skills/`
+
+Daily command set:
+
+- Primary: add/update a task, choose next focus, write weekly summary.
+- Advanced: blocked-task review, resume pack, evidence polishing, board hygiene, and explicit agent handoff.
+
+Claude Code daily use:
 
 ```bash
 cd /Users/desmond/Desktop/projects/personal-task-board
 claude --plugin-dir .
 ```
 
-Then use slash skills inside Claude Code:
+This keeps Claude working against the real task-board repo. If Claude is launched from another repo, explicitly give it `/Users/desmond/Desktop/projects/personal-task-board` before asking it to read or change tasks. Do not use Claude's plugin cache as task storage.
+
+If Claude is launched from another repo, slash commands require the plugin to be loaded or installed. For a temporary session, start Claude with:
+
+```bash
+claude --plugin-dir /Users/desmond/Desktop/projects/personal-task-board --add-dir /Users/desmond/Desktop/projects/personal-task-board
+```
+
+Passing only the task-board path gives the agent file access, but it does not create slash commands.
+
+Primary Claude commands:
 
 ```text
 /personal-task-board:task-add ask manager what good ramp-up looks like in first 30 days
 /personal-task-board:task-update PTB-001 manager said focus on payment edge cases first
 /personal-task-board:task-next
+/personal-task-board:task-weekly
+```
+
+Advanced Claude commands:
+
+```text
 /personal-task-board:task-blocked
 /personal-task-board:task-resume PTB-001
-/personal-task-board:task-weekly
 /personal-task-board:task-evidence PTB-001 reduced timeout uncertainty by confirming source of truth
 /personal-task-board:task-review-board
 /personal-task-board:task-handoff PTB-001 to agent
@@ -68,15 +103,20 @@ After changing plugin files during a Claude Code session, run:
 /reload-plugins
 ```
 
-Codex plugin skills use the same names without the leading slash:
+Codex prompt syntax uses the skill names in normal text:
 
 ```text
 personal-task-board:task-add
 personal-task-board:task-update
 personal-task-board:task-next
+personal-task-board:task-weekly
+```
+
+Advanced Codex skills:
+
+```text
 personal-task-board:task-blocked
 personal-task-board:task-resume
-personal-task-board:task-weekly
 personal-task-board:task-evidence
 personal-task-board:task-review-board
 personal-task-board:task-handoff
@@ -88,13 +128,14 @@ Example:
 Use personal-task-board:task-add to capture this: ask manager what good ramp-up looks like in first 30 days
 ```
 
+Codex plugin commands work only after the local plugin is installed or otherwise available in your Codex environment. If the plugin is not available yet, use the direct-agent prompt from the section above with the absolute repo path, then ask Codex to read `AGENTS.md` and `docs/agent-workflows.md`.
+
 These skills operate on `data/tasks.json`; they are not buttons in the HTML viewer.
-Run Claude Code from the task-board repo, or explicitly tell the agent the task-board repo path. Do not use Claude's plugin cache as task storage.
+Run agents from the task-board repo, or explicitly tell the agent the task-board repo path. Do not read or write task data from a plugin cache.
 
 Localhost is optional. Use it only if you want browser auto-load of `data/tasks.json`:
 
 ```bash
-npm install
 npm run serve
 ```
 
@@ -126,7 +167,8 @@ Validation checks:
 - `app.js`: view-only board UI, filtering, sorting, detail rendering, and JSON file loading
 - `.codex-plugin/plugin.json`: Codex plugin manifest
 - `.claude-plugin/plugin.json`: Claude Code plugin manifest
-- `skills/`: shared Codex and Claude Code plugin skills for task add/update/triage/summary/evidence workflows
+- `codex-skills/`: Codex plugin skills for task add/update/triage/summary/evidence workflows
+- `skills/`: Claude Code plugin skills for task add/update/triage/summary/evidence workflows
 - `data/tasks.json`: task source of truth
 - `data/config.json`: statuses, views, sync guardrails, sensitive-data policy
 - `schemas/`: JSON Schema contracts

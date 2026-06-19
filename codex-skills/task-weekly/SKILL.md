@@ -1,14 +1,13 @@
 ---
 name: task-weekly
 description: Generate a weekly Personal Task Board review or manager update. Use when Desmond asks for weekly summary, manager update, review evidence, or this week's progress.
-disable-model-invocation: true
 ---
 
 # Task Weekly
 
 Use this plugin command for weekly review, manager update preparation, and review-evidence hygiene.
 
-If the user provides arguments, treat `$ARGUMENTS` as focus constraints.
+Use remaining user prompt text as optional focus constraints. In Codex, that is the text around the skill mention.
 
 Operate from the real Personal Task Board repo root, normally `/Users/desmond/Desktop/projects/personal-task-board`. Before reading or writing, verify the root contains `package.json`, `.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`, and `data/tasks.json`. Reject paths under `.claude`, `.codex`, or any plugin cache; if uncertain, ask Desmond for the repo path.
 

@@ -1,14 +1,13 @@
 ---
 name: task-review-board
 description: Review Personal Task Board hygiene without editing by default. Use when Desmond asks to review board, find duplicates, stale tasks, unclear blockers, evidence gaps, or drop candidates.
-disable-model-invocation: true
 ---
 
 # Task Review Board
 
 Use this plugin command for a non-mutating board hygiene review.
 
-If the user provides arguments, treat `$ARGUMENTS` as focus constraints.
+Use remaining user prompt text as optional focus constraints. In Codex, that is the text around the skill mention.
 
 Operate from the real Personal Task Board repo root, normally `/Users/desmond/Desktop/projects/personal-task-board`. Before reading or writing, verify the root contains `package.json`, `.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`, and `data/tasks.json`. Reject paths under `.claude`, `.codex`, or any plugin cache; if uncertain, ask Desmond for the repo path.
 

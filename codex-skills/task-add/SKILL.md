@@ -1,14 +1,13 @@
 ---
 name: task-add
 description: Add or normalize a messy Personal Task Board task into data/tasks.json. Use when Desmond says task add, add task, capture this, remember this, or gives a rough Ryt/onboarding/workflow task.
-disable-model-invocation: true
 ---
 
 # Task Add
 
 Use this plugin command to convert a messy request into a valid task in `data/tasks.json`.
 
-User argument: `$ARGUMENTS`
+Use remaining user prompt text as the command input. In Codex, that is the text around the skill mention.
 
 Operate from the real Personal Task Board repo root, normally `/Users/desmond/Desktop/projects/personal-task-board`. Before reading or writing, verify the root contains `package.json`, `.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`, and `data/tasks.json`. Reject paths under `.claude`, `.codex`, or any plugin cache; if uncertain, ask Desmond for the repo path.
 

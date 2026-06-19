@@ -9,14 +9,16 @@ For plugin skills such as `personal-task-board:task-add`, `personal-task-board:t
 1. Read `AGENTS.md`.
 2. Read `data/config.json`.
 3. Read `data/tasks.json`.
-4. Identify the task ID or title Desmond assigned.
-5. Do not self-assign unless Desmond explicitly asked you to work on that task.
+4. Confirm the current project/worktree is the real Personal Task Board repo, normally `/Users/desmond/Desktop/projects/personal-task-board`.
+5. Do not read or write task data from Claude's plugin cache, Codex's plugin cache, or another repo that merely has a `data/tasks.json` file.
+6. Identify the task ID or title Desmond assigned.
+7. Do not self-assign unless Desmond explicitly asked you to work on that task.
 
 ## Task Intake
 
 When Desmond gives a messy task in chat, normalize it into `data/tasks.json` instead of asking him to use the HTML viewer.
 
-- choose conservative defaults for type, status, priority, energy, dates, refs, and evidence state
+- choose conservative defaults for type, status, priority, energy, dates, externalRefs, and evidence state
 - keep `nextAction` empty when the next step is unknown
 - use `questions` or `notes` for uncertainty
 - set `agentHelp.wanted` only when Desmond is asking an agent to help normalize or work on the task

@@ -1,14 +1,13 @@
 ---
 name: task-next
 description: Recommend what Desmond should do next from the Personal Task Board. Use when Desmond asks what next, what should I do, prioritize, triage, or help me focus.
-disable-model-invocation: true
 ---
 
 # Task Next
 
 Use this plugin command to recommend the next useful work from `data/tasks.json`.
 
-If the user provides arguments, treat `$ARGUMENTS` as focus constraints.
+Use remaining user prompt text as optional focus constraints. In Codex, that is the text around the skill mention.
 
 Operate from the real Personal Task Board repo root, normally `/Users/desmond/Desktop/projects/personal-task-board`. Before reading or writing, verify the root contains `package.json`, `.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`, and `data/tasks.json`. Reject paths under `.claude`, `.codex`, or any plugin cache; if uncertain, ask Desmond for the repo path.
 

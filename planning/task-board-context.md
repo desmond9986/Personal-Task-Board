@@ -1477,16 +1477,44 @@ Research checked against the current Claude Code docs:
 - Claude Code plugins are self-contained directories with a `.claude-plugin/plugin.json` manifest and components at the plugin root.
 - Plugin skills live in `skills/<skill-name>/SKILL.md` by default.
 - Plugin skills are invoked in Claude Code with namespaced slash commands such as `/personal-task-board:task-add`.
-- `disable-model-invocation: true` is appropriate for manual command workflows so Claude does not auto-run task mutations.
+- Codex and Claude now use separate skill entrypoint folders because Claude command-only metadata is not valid Codex skill frontmatter.
+- Codex uses `codex-skills/` through `.codex-plugin/plugin.json`.
+- Claude uses `skills/` through `.claude-plugin/plugin.json` auto-discovery.
+- Claude skills use `disable-model-invocation: true` so mutating task workflows stay manual slash-command workflows.
 - `$ARGUMENTS` should be included in skill text when the user input after the slash command matters.
 - Local plugin development can be tested with `claude --plugin-dir /Users/desmond/Desktop/projects/personal-task-board`; `/reload-plugins` reloads changed plugin files during a session.
 - Claude should be launched from the task-board repo, or given the task-board repo path, because `data/tasks.json` is the real source of truth.
-- Do not write task state into Claude's plugin cache.
+- Do not read or write task state from Claude's plugin cache, Codex's plugin cache, or another repo that merely has a `data/tasks.json` file.
 - MCP, hooks, and monitors are intentionally not added yet. They are useful later only if repeated external-tool sync becomes real friction.
 
 Implemented direction:
 
 - add `.claude-plugin/plugin.json`
-- keep the shared `skills/` directory as the command source for both Codex and Claude Code
+- keep equivalent Codex and Claude skill entrypoints while sharing the same workflow docs
 - document Claude slash-command usage separately from Codex usage
 - keep HTML view-only and keep JSON edits agent-driven
+
+## 51. First Plugin Review Fixes
+
+Date: 2026-06-20.
+
+Five subagents reviewed `docs/agent-workflows.md`, the Codex plugin, and the Claude plugin.
+
+Implemented fixes from the first review:
+
+- split skill entrypoints so Codex frontmatter stays Codex-compatible and Claude skills can keep manual-only command metadata
+- make four commands primary: `task-add`, `task-update`, `task-next`, and `task-weekly`
+- keep `task-blocked`, `task-resume`, `task-evidence`, `task-review-board`, and `task-handoff` as advanced workflows
+- add first setup instructions for `npm install` and `npm run validate`
+- clarify Claude daily use: launch from the task-board repo or pass the repo path explicitly
+- strengthen source-of-truth wording so agents must not read or write task state from plugin caches
+- use schema language `externalRefs` instead of `refs` in workflow instructions
+
+Second review follow-up:
+
+- add `task-update` to first-use examples
+- make `task-next` output include the promised resume pack
+- add an empty-board fallback for `task-weekly`
+- keep onboarding examples mostly on the four primary commands
+- clarify that Claude slash commands require loading/installing the plugin, not merely mentioning the repo path
+- clarify that Codex skill names work only after the plugin is installed or otherwise available

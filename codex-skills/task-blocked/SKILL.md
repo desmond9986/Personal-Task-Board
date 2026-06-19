@@ -1,14 +1,13 @@
 ---
 name: task-blocked
 description: Review blocked, waiting, and need-discussion tasks. Use when Desmond asks what is blocked, what to ask, what is waiting, or how to unblock tasks.
-disable-model-invocation: true
 ---
 
 # Task Blocked
 
 Use this plugin command to find and explain blocked or unclear work.
 
-If the user provides arguments, treat `$ARGUMENTS` as focus constraints.
+Use remaining user prompt text as optional focus constraints. In Codex, that is the text around the skill mention.
 
 Operate from the real Personal Task Board repo root, normally `/Users/desmond/Desktop/projects/personal-task-board`. Before reading or writing, verify the root contains `package.json`, `.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`, and `data/tasks.json`. Reject paths under `.claude`, `.codex`, or any plugin cache; if uncertain, ask Desmond for the repo path.
 

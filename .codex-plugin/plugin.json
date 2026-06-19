@@ -16,7 +16,7 @@
     "workflow",
     "career-review"
   ],
-  "skills": "./skills/",
+  "skills": "./codex-skills/",
   "interface": {
     "displayName": "Personal Task Board",
     "shortDescription": "Agent commands for a local JSON task board.",
@@ -29,11 +29,10 @@
     ],
     "websiteURL": "https://github.com/desmond9986/Personal-Task-Board",
     "defaultPrompt": [
-      "Use personal-task-board:task-add to capture this",
+      "Use personal-task-board:task-add or task-update",
       "Use personal-task-board:task-next to choose focus",
       "Use personal-task-board:task-weekly for my update"
     ],
-    "brandColor": "#0B6B57",
-    "screenshots": []
+    "brandColor": "#0B6B57"
   }
 }
