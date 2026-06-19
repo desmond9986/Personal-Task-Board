@@ -31,21 +31,17 @@ Open:
 http://localhost:4173
 ```
 
-Use `Agent intake` to prepare a prompt for Codex/Claude. The HTML app is mainly for viewing, filtering, sorting, and editing existing tasks; new task creation should happen through an agent updating `data/tasks.json`.
+The HTML app is view-only. Use it to load `data/tasks.json`, filter/sort tasks, and inspect task details. Do not add, edit, save, or export tasks from the browser.
 
-The app tries to auto-load `data/tasks.json` when served locally. Auto-loaded data is a read-only snapshot. For direct file editing, click `Open tasks.json`, select `data/tasks.json`, then use `Save changes`.
+Task changes should happen through an agent or a direct JSON edit:
 
-If the browser cannot save back to the opened file, click `Export update`. Export creates a changed-task-only `taskUpdates[]` file with base timestamps for conflict detection. Move the exported file into `updates/`, then run:
-
-```bash
-npm run import-update -- updates/tasks-update-YYYYMMDD-HHmmss.json
+```text
+Please update /Users/desmond/Desktop/projects/personal-task-board/data/tasks.json for this task.
+Read AGENTS.md and docs/agent-operating-guide.md first.
+Run npm run validate before finishing.
 ```
 
-If import reports a conflict, re-open the latest `data/tasks.json` in the app and export again. Use `--force` only when you intentionally want to overwrite the current task:
-
-```bash
-npm run import-update -- updates/tasks-update-YYYYMMDD-HHmmss.json --force
-```
+After an agent changes JSON, refresh the page or click `Open tasks.json` again to view the latest file.
 
 ## Validate
 
@@ -66,7 +62,7 @@ Validation checks:
 
 - `index.html`: app shell
 - `style.css`: locked Design 1 visual system
-- `app.js`: board UI, filtering, create/detail edit, open/save/changed-task export flow
+- `app.js`: view-only board UI, filtering, sorting, detail rendering, and JSON file loading
 - `data/tasks.json`: task source of truth
 - `data/config.json`: statuses, views, sync guardrails, sensitive-data policy
 - `schemas/`: JSON Schema contracts

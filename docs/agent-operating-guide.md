@@ -21,6 +21,8 @@ When Desmond gives a messy task in chat, normalize it into `data/tasks.json` ins
 - ask at most one clarifying question when the task cannot be represented safely
 - run `npm run validate`
 
+The HTML app is view-only. Do not ask Desmond to create or edit tasks through the browser UI.
+
 ## During Work
 
 If explicitly assigned, update `agents[]` with:
@@ -69,11 +71,11 @@ Then summarize:
 - validation result
 - any next action Desmond needs
 
-## Browser Update Files
+## HTML Viewer
 
-The browser app exports only changed tasks in `taskUpdates[]`.
+The browser app is only for viewing, filtering, sorting, and opening task detail. It does not create, edit, save, export, or merge task data.
 
-Import is conflict-checked against each task's base `updatedAt`. If a conflict appears, do not force it unless Desmond explicitly accepts the overwrite. The safer path is to re-open the latest `data/tasks.json`, reapply the browser edits, export again, and import the fresh update.
+If Desmond asks to add or change a task, edit `data/tasks.json` directly as the agent, keep the change scoped to the requested task, and run `npm run validate`.
 
 ## External Systems
 

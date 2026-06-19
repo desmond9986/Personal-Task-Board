@@ -118,7 +118,7 @@ select {
 
 .tabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin-bottom: 16px;
 }
@@ -267,36 +267,6 @@ select {
   min-height: 82px;
   resize: vertical;
   line-height: 1.5;
-}
-
-.create-layout {
-  display: grid;
-  gap: 12px;
-}
-
-.rough-intake {
-  display: grid;
-  gap: 12px;
-}
-
-.intake-textarea {
-  min-height: 150px;
-}
-
-.prompt-textarea {
-  min-height: 160px;
-  background: var(--surface-soft);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.agent-prompt-box {
-  margin-top: 2px;
-}
-
-.create-actions {
-  align-items: stretch;
 }
 
 .btn {
@@ -668,9 +638,31 @@ tr[data-task-row].selected {
   line-height: 1.55;
 }
 
-.detail-form-stack {
+.readonly-stack {
   display: grid;
   gap: 12px;
+}
+
+.readonly-label {
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.readonly-value {
+  margin: 0;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.readonly-columns {
+  align-items: start;
 }
 
 .detail-two-col {

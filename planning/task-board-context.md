@@ -1397,3 +1397,26 @@ Locked adjustment:
 - agents are responsible for adding new tasks to `data/tasks.json`
 - existing task detail editing remains allowed in HTML
 - direct save/export still applies only after edits change browser state
+
+## 46. View-Only HTML
+
+Date: 2026-06-19.
+
+Desmond simplified the model further: the HTML app is only for viewing. It should not create, edit, save, export, or merge task data.
+
+Supersedes section 45 where existing-task editing and browser save/export were still allowed.
+
+Locked adjustment:
+
+- HTML is a read-only viewer for `data/tasks.json`
+- board supports search, saved views, filters, sort, status counts, and opening detail
+- task detail is read-only and should show title, description, status, dates, questions, references, evidence, agents, and activity
+- no create route, no agent-intake form, no editable task fields, no save button, no export update button
+- `Open tasks.json` only loads a JSON file for viewing; it must not request or keep writable file access
+- agents or direct JSON edits are the only task mutation paths
+- after agents update JSON, the user refreshes the page or opens `tasks.json` again to view latest data
+
+Future agent guardrail:
+
+- do not reintroduce browser-side task mutation unless Desmond explicitly reverses this decision
+- if Desmond asks to add/change a task, update `data/tasks.json` as an agent and run `npm run validate`

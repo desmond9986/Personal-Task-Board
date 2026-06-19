@@ -87,7 +87,7 @@ Allowed review categories:
 
 ## Update Files
 
-The app exports changed-task-only update files:
+The HTML viewer no longer exports update files. `scripts/import-update.mjs` remains available as an optional utility if an agent or external process creates a changed-task-only update file:
 
 ```json
 {
@@ -104,4 +104,4 @@ The app exports changed-task-only update files:
 }
 ```
 
-`scripts/import-update.mjs` uses `baseTaskUpdatedAt` to prevent stale browser exports from overwriting newer task edits.
+`scripts/import-update.mjs` uses `baseTaskUpdatedAt` to prevent stale updates from overwriting newer task edits.

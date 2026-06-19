@@ -50,24 +50,12 @@
     tasks: []
   };
 
-  const allowedReviewCategories = new Set([
-    "shipped_work",
-    "quality_improvement",
-    "risk_reduction",
-    "cross_team_impact",
-    "documentation",
-    "mentoring_helping",
-    "bug_handling",
-    "ai_workflow",
-    "learning"
-  ]);
   const priorityRank = { low: 1, medium: 2, high: 3, urgent: 4 };
   const energyRank = { low: 1, medium: 2, high: 3 };
   const statusRank = { dropped: 0, done: 1, review: 2, waiting: 3, todo: 4, in_progress: 5, need_discussion: 6, blocked: 7, backlog: 8 };
 
   let board = structuredClone(emptyBoard);
   let config = embeddedConfig;
-  let fileHandle = null;
   let fileLabel = "not opened";
 
   const state = {
@@ -78,11 +66,8 @@
     filters: { status: "all", type: "all", priority: "all", evidence: "all" },
     sortBy: "priority",
     sortDirection: "desc",
-    dirty: false,
     sourceMode: "loading",
-    console: "ready",
-    changedTaskIds: new Set(),
-    baseTaskUpdatedAt: new Map()
+    console: "ready"
   };
 
   const $ = (selector) => document.querySelector(selector);
@@ -97,34 +82,8 @@
       .replaceAll("'", "&#039;");
   }
 
-  function stableJson(value) {
-    return `${JSON.stringify(value, null, 2)}\n`;
-  }
-
-  function nowIso() {
-    return new Date().toISOString();
-  }
-
   function todayDate() {
     return new Date().toISOString().slice(0, 10);
-  }
-
-  function timestampForFile() {
-    const date = new Date();
-    const pad = (value) => String(value).padStart(2, "0");
-    return [
-      date.getFullYear(),
-      pad(date.getMonth() + 1),
-      pad(date.getDate()),
-      "-",
-      pad(date.getHours()),
-      pad(date.getMinutes()),
-      pad(date.getSeconds())
-    ].join("");
-  }
-
-  function hasWritableFile() {
-    return Boolean(fileHandle && "createWritable" in fileHandle);
   }
 
   function getTasks() {
@@ -153,7 +112,7 @@
       board = await fetchJson("data/tasks.json");
       state.sourceMode = "read-only auto-load: data/tasks.json";
       fileLabel = "data/tasks.json";
-      state.console = "Loaded read-only data/tasks.json. Click Open tasks.json for direct save permission, or use Export update.";
+      state.console = "Loaded read-only data/tasks.json. Agents should update the JSON; refresh or open the file again to view changes.";
     } catch {
       board = structuredClone(emptyBoard);
       state.sourceMode = "empty until tasks.json is opened";
@@ -161,8 +120,6 @@
     }
 
     ensureBoardShape();
-    state.changedTaskIds.clear();
-    rememberBaseTaskState();
     state.selectedId = selectedTask()?.id || "";
   }
 
@@ -171,22 +128,6 @@
     if (!board.meta) board.meta = structuredClone(emptyBoard.meta);
     if (!board.meta.syncState) board.meta.syncState = structuredClone(emptyBoard.meta.syncState);
     if (!Array.isArray(board.tasks)) board.tasks = [];
-  }
-
-  function rememberBaseTaskState() {
-    state.baseTaskUpdatedAt = new Map(getTasks().map((task) => [task.id, task.updatedAt || ""]));
-  }
-
-  function touchBoard(summary) {
-    ensureBoardShape();
-    board.meta.updatedAt = nowIso();
-    if (summary) state.console = summary;
-  }
-
-  function markDirty(summary, taskId = "") {
-    state.dirty = true;
-    if (taskId) state.changedTaskIds.add(taskId);
-    touchBoard(summary);
   }
 
   function chipClass(value) {
@@ -339,33 +280,12 @@
     fillSelect("#typeFilter", config.options.types, "Any type");
     fillSelect("#priorityFilter", config.options.priorities, "Any priority");
     fillSelect("#evidenceFilter", config.options.evidenceStates, "Any evidence");
-    fillSelect("#detailStatus", config.options.statuses);
-    fillSelect("#detailEvidence", config.options.evidenceStates);
   }
 
   function renderSourceState() {
-    const dirtyText = state.dirty ? "unsaved changes" : "clean";
-    const writable = hasWritableFile();
-    const accessText = writable ? "writable file opened" : "read-only snapshot";
-    const changedText = state.changedTaskIds.size ? `${state.changedTaskIds.size} changed task(s)` : "no changed tasks";
-    $("#sourceLine").textContent = `${accessText} · ${state.sourceMode} · ${dirtyText} · ${changedText} · ${getTasks().length} tasks`;
-    $("#fileStatus").textContent = `${fileLabel}; ${accessText}; ${dirtyText}; ${changedText}.`;
+    $("#sourceLine").textContent = `view-only · ${state.sourceMode} · ${getTasks().length} task(s)`;
+    $("#fileStatus").textContent = `${fileLabel}; view-only; ${getTasks().length} task(s).`;
     $("#syncConsole").textContent = state.console;
-
-    $$('[data-action="save-board"]').forEach((button) => {
-      button.disabled = !writable || !state.dirty;
-      button.textContent = writable ? (state.dirty ? "Save changes" : "Saved") : "Open file to save";
-      button.title = writable
-        ? "Write current browser changes to the opened tasks.json file."
-        : "Open data/tasks.json first for direct saving. Otherwise use Export update.";
-    });
-
-    $$('[data-action="export-update"]').forEach((button) => {
-      button.disabled = state.changedTaskIds.size === 0;
-      button.title = state.changedTaskIds.size
-        ? "Export changed tasks for import-update."
-        : "No changed tasks to export.";
-    });
 
     const sync = board.meta?.syncState || emptyBoard.meta.syncState;
     $("#syncPageLastSync").innerHTML = `${escapeHtml(sync.lastSyncStatus || "never")}<br />${escapeHtml(sync.lastSyncSummary || "Manual only until config says otherwise.")}`;
@@ -517,98 +437,118 @@
       .join("");
   }
 
-  function setDetailDisabled(disabled) {
-    [
-      "#detailTitleInput",
-      "#detailDescriptionInput",
-      "#detailNextAction",
-      "#detailQuestions",
-      "#detailRefs",
-      "#detailEvidenceSummary",
-      "#detailEvidenceImpact",
-      "#detailEvidenceCategories",
-      "#detailEvidenceLinks",
-      "#detailStatus",
-      "#detailEvidence",
-      "#detailAgentHelp"
-    ].forEach((selector) => {
-      const field = $(selector);
-      if (field) field.disabled = disabled;
-    });
+  function displayText(value, fallback = "none") {
+    const text = String(value ?? "").trim();
+    return text || fallback;
+  }
+
+  function emptyListHtml(label = "none") {
+    return `<li>${escapeHtml(label)}</li>`;
+  }
+
+  function refLabel(ref) {
+    return ref.id || ref.label || ref.url || "reference";
+  }
+
+  function refsListHtml(refs = [], emptyLabel = "none") {
+    const visibleRefs = refs.filter((ref) => ref && (ref.id || ref.label || ref.url));
+    if (!visibleRefs.length) return emptyListHtml(emptyLabel);
+    return visibleRefs
+      .map((ref) => {
+        const label = refLabel(ref);
+        const meta = [ref.system, ref.type].filter(Boolean).join(" · ");
+        const content = ref.url
+          ? `<a href="${escapeHtml(ref.url)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`
+          : escapeHtml(label);
+        return `<li>${content}${meta ? `<br /><span class="mono">${escapeHtml(meta)}</span>` : ""}</li>`;
+      })
+      .join("");
+  }
+
+  function keyValueListHtml(entries) {
+    return entries
+      .map(([label, value]) => `<li><strong>${escapeHtml(label)}</strong>${escapeHtml(displayText(value))}</li>`)
+      .join("");
+  }
+
+  function renderEmptyDetail() {
+    $("#detailTaskId").textContent = "No task";
+    $("#detailTitleView").textContent = "No task selected.";
+    $("#detailDescriptionView").textContent = "none";
+    $("#detailNextActionView").textContent = "none";
+    $("#detailQuestionsView").innerHTML = emptyListHtml();
+    $("#detailRefsView").innerHTML = emptyListHtml();
+    $("#detailEvidenceSummaryView").textContent = "none";
+    $("#detailEvidenceImpactView").textContent = "none";
+    $("#detailEvidenceCategoriesView").textContent = "none";
+    $("#detailEvidenceLinksView").innerHTML = emptyListHtml();
+    $("#detailStatusBand").innerHTML = '<span class="chip">Open tasks.json to view task detail</span>';
+    $("#detailStateSummary").innerHTML = "";
+    $("#detailMetaSummary").innerHTML = "";
+    $("#detailActivity").innerHTML = emptyListHtml();
   }
 
   function renderDetail() {
     const task = selectedTask();
-    clearDetailErrors();
 
     if (!task) {
-      setDetailDisabled(true);
-      $("#detailTaskId").textContent = "No task";
-      $("#detailTitleInput").value = "";
-      $("#detailDescriptionInput").value = "";
-      $("#detailNextAction").value = "";
-      $("#detailQuestions").value = "";
-      $("#detailRefs").value = "";
-      $("#detailEvidenceSummary").value = "";
-      $("#detailEvidenceImpact").value = "";
-      $("#detailEvidenceCategories").value = "";
-      $("#detailEvidenceLinks").value = "";
-      $("#detailStatusBand").innerHTML = '<span class="chip">Open tasks.json or create a task</span>';
-      $("#detailMetaSummary").innerHTML = "";
-      $("#detailActivity").innerHTML = "";
-      $("#agentCommand").textContent = "Select a task first.";
+      renderEmptyDetail();
       return;
     }
 
-    setDetailDisabled(false);
     state.selectedId = task.id;
     $("#detailTaskId").textContent = task.id;
-    $("#detailTitleInput").value = task.title || "";
-    $("#detailDescriptionInput").value = task.description || "";
-    $("#detailNextAction").value = task.nextAction || "";
-    $("#detailQuestions").value = (task.questions || []).map((question) => question.text).join("\n");
-    $("#detailRefs").value = (task.externalRefs || []).map(formatRefForTextarea).join("\n");
-    $("#detailEvidenceSummary").value = task.evidence?.summary || "";
-    $("#detailEvidenceImpact").value = task.evidence?.impact || "";
-    $("#detailEvidenceCategories").value = (task.evidence?.reviewCategory || []).join(", ");
-    $("#detailEvidenceCategories").classList.remove("invalid");
-    $("#detailEvidenceLinks").value = (task.evidence?.links || []).map(formatRefForTextarea).join("\n");
-    $("#detailStatus").value = task.status;
-    $("#detailEvidence").value = task.evidence?.state || "missing";
-    $("#detailAgentHelp").value = String(Boolean(task.agentHelp?.wanted));
+    $("#detailTitleView").textContent = displayText(task.title, "Untitled task");
+    $("#detailDescriptionView").textContent = displayText(task.description);
+    $("#detailNextActionView").textContent = displayText(task.nextAction, "unknown yet");
+
+    const questions = (task.questions || []).filter((question) => question?.text || question?.answer);
+    $("#detailQuestionsView").innerHTML = questions.length
+      ? questions
+          .map((question) => {
+            const meta = [question.status || "open", question.askedTo ? `ask: ${question.askedTo}` : ""].filter(Boolean).join(" · ");
+            return `<li>${escapeHtml(displayText(question.text, "Question"))}${meta ? `<br /><span class="mono">${escapeHtml(meta)}</span>` : ""}${question.answer ? `<br />${escapeHtml(question.answer)}` : ""}</li>`;
+          })
+          .join("")
+      : emptyListHtml();
+
+    $("#detailRefsView").innerHTML = refsListHtml(task.externalRefs || []);
+    $("#detailEvidenceSummaryView").textContent = displayText(task.evidence?.summary);
+    $("#detailEvidenceImpactView").textContent = displayText(task.evidence?.impact);
+    $("#detailEvidenceCategoriesView").textContent = displayText((task.evidence?.reviewCategory || []).join(", "));
+    $("#detailEvidenceLinksView").innerHTML = refsListHtml(task.evidence?.links || []);
 
     $("#detailStatusBand").innerHTML = [
-      `<span class="status"><span class="dot ${escapeHtml(task.status)}"></span>${escapeHtml(task.status)}</span>`,
-      `<span class="chip ${chipClass(task.priority)}">${escapeHtml(task.priority)}</span>`,
-      `<span class="chip">${escapeHtml(task.energy)} energy</span>`,
-      `<span class="chip ${chipClass(task.evidence?.state)}">evidence: ${escapeHtml(task.evidence?.state || "missing")}</span>`,
-      `<span class="chip">target: ${escapeHtml(task.targetDate || "none")}</span>`,
-      `<span class="chip">due: ${escapeHtml(task.dueDate || "none")}</span>`
+      `<span class="status"><span class="dot ${escapeHtml(task.status)}"></span>${escapeHtml(statusLabel(task.status || "backlog"))}</span>`,
+      `<span class="chip ${chipClass(task.priority)}">${escapeHtml(displayText(task.priority, "no priority"))}</span>`,
+      `<span class="chip">${escapeHtml(displayText(task.energy, "unknown"))} energy</span>`,
+      `<span class="chip ${chipClass(task.evidence?.state)}">evidence: ${escapeHtml(displayText(task.evidence?.state, "missing"))}</span>`,
+      `<span class="chip">target: ${escapeHtml(displayText(task.targetDate))}</span>`,
+      `<span class="chip">due: ${escapeHtml(displayText(task.dueDate))}</span>`
     ].join("");
 
-    $("#detailStateHint").textContent =
-      task.evidence?.state === "missing"
-        ? "Evidence is still missing. Before review/done, capture impact, risk, decision, or a useful link."
-        : "Evidence and agent help are saved with state.";
+    $("#detailStateSummary").innerHTML = keyValueListHtml([
+      ["Status", statusLabel(task.status || "backlog")],
+      ["Priority", task.priority],
+      ["Energy", task.energy],
+      ["Evidence", task.evidence?.state || "missing"],
+      ["Agent help", task.agentHelp?.wanted ? task.agentHelp.reason || "wanted" : "not requested"]
+    ]);
 
-    $("#detailMetaSummary").innerHTML = [
+    $("#detailMetaSummary").innerHTML = keyValueListHtml([
       ["Type", task.type],
       ["Current agents", taskAgentsText(task) || "none"],
       ["Questions", task.questions?.length ? `${task.questions.length} open/known` : "none"],
       ["References", taskRefsText(task) || "none"],
+      ["Target date", task.targetDate || "none"],
       ["Due date", task.dueDate || "none"],
-      ["Evidence categories", task.evidence?.reviewCategory?.join(", ") || "none"],
       ["Updated", task.updatedAt || "unknown"]
-    ]
-      .map(([label, value]) => `<li><strong>${escapeHtml(label)}</strong>${escapeHtml(value)}</li>`)
-      .join("");
+    ]);
 
-    $("#detailActivity").innerHTML = (task.activity || [])
-      .slice(0, 8)
-      .map((item) => `<li>${escapeHtml(item.text)}<br /><span class="mono">${escapeHtml(item.at)}</span></li>`)
-      .join("");
-
-    $("#agentCommand").textContent = `Ask Codex/Claude: please pick up ${task.id} as worker/reviewer. Read AGENTS.md first, update agents[], then run npm run validate.`;
+    const activity = (task.activity || []).slice(0, 8);
+    $("#detailActivity").innerHTML = activity.length
+      ? activity.map((item) => `<li>${escapeHtml(item.text)}<br /><span class="mono">${escapeHtml(item.at)}</span></li>`).join("")
+      : emptyListHtml();
   }
 
   function renderPages() {
@@ -653,253 +593,15 @@
     renderAll();
   }
 
-  function setDetailFieldError(field, errorSelector, message) {
-    const error = $(errorSelector);
-    field.classList.toggle("invalid", Boolean(message));
-    field.setAttribute("aria-invalid", message ? "true" : "false");
-    if (error) {
-      error.textContent = message || "";
-      error.classList.toggle("active", Boolean(message));
-    }
-  }
-
-  function clearDetailErrors() {
-    $("#detailEditError").textContent = "Title is required.";
-    $("#detailEditError").classList.remove("active");
-    setDetailFieldError($("#detailTitleInput"), "#detailTitleError", "");
-  }
-
-  function validateDetailEdits() {
-    clearDetailErrors();
-    const invalid = [];
-    if (!$("#detailTitleInput").value.trim()) {
-      setDetailFieldError($("#detailTitleInput"), "#detailTitleError", "Title is required.");
-      invalid.push($("#detailTitleInput"));
-    }
-    $("#detailEditError").classList.toggle("active", invalid.length > 0);
-    if (invalid.length > 0) invalid[0].focus();
-    return invalid.length === 0;
-  }
-
-  function validateStatusChange(task) {
-    clearDetailErrors();
-    const nextAction = $("#detailNextAction").value.trim();
-    if (task.nextAction !== nextAction) task.nextAction = nextAction;
-    return true;
-  }
-
-  function parseLineList(value) {
-    return value
-      .split("\n")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  function parseReviewCategories(value) {
-    return Array.from(
-      new Set(
-        value
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean)
-      )
-    );
-  }
-
-  function validateReviewCategories() {
-    const field = $("#detailEvidenceCategories");
-    const categories = parseReviewCategories(field.value);
-    const invalid = categories.filter((category) => !allowedReviewCategories.has(category));
-    field.classList.toggle("invalid", invalid.length > 0);
-    if (invalid.length > 0) {
-      state.console = `Invalid review categories: ${invalid.join(", ")}. Use schema categories like risk_reduction, quality_improvement, ai_workflow, learning.`;
-      field.focus();
-      renderSourceState();
-      return false;
-    }
-    return true;
-  }
-
-  function parseRefLine(item) {
-    const parts = item.split("|").map((part) => part.trim()).filter(Boolean);
-    if (parts.length >= 2) {
-      const url = parts.find((part) => part.startsWith("http")) || "";
-      return {
-        type: url ? "other" : "document",
-        system: "manual",
-        id: parts[0].startsWith("http") ? "" : parts[0],
-        url,
-        label: parts[0]
-      };
-    }
-    if (/^https?:\/\//.test(item)) {
-      return { type: "other", system: "manual", id: "", url: item, label: item };
-    }
-    return { type: "ticket", system: "unknown", id: item, url: "", label: item };
-  }
-
-  function parseRefList(value) {
-    return value
-      .split(/\n|,/)
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .map(parseRefLine);
-  }
-
-  function formatRefForTextarea(ref) {
-    if (ref.url && (ref.id || ref.label)) return `${ref.id || ref.label} | ${ref.url}`;
-    return ref.id || ref.url || ref.label || "";
-  }
-
-  function syncQuestions(task, rawText) {
-    const existingByText = new Map((task.questions || []).map((question) => [question.text, question]));
-    return parseLineList(rawText).map((text, index) => {
-      if (task.questions?.[index]) return { ...task.questions[index], text };
-      const existing = existingByText.get(text);
-      if (existing) return existing;
-      return {
-        id: `${task.id}-q-${String(index + 1).padStart(3, "0")}-${Date.now()}`,
-        text,
-        status: "open",
-        answer: "",
-        askedTo: "",
-        createdAt: nowIso()
-      };
-    });
-  }
-
-  function syncRefs(existingRefs = [], rawText) {
-    return parseLineList(rawText).flatMap((line, index) => {
-      const parsedRefs = parseRefList(line);
-      return parsedRefs.map((parsed, offset) => {
-        const existing = existingRefs[index + offset] || {};
-        return {
-          ...existing,
-          ...parsed,
-          type: parsed.type || existing.type || "other",
-          system: parsed.system || existing.system || "manual",
-          id: parsed.id || existing.id || "",
-          url: parsed.url || existing.url || "",
-          label: parsed.label || existing.label || parsed.id || parsed.url || ""
-        };
-      });
-    });
-  }
-
-  function activity(id, type, text, actor = config.ownerName || "Desmond") {
-    return {
-      id: `${id}-a-${Date.now()}`,
-      type,
-      text,
-      actor,
-      at: nowIso()
-    };
-  }
-
-  function agentIntakePrompt(rawText = "") {
-    const roughTask = rawText.trim() || "[paste rough task here]";
-    return [
-      "Please add this task to /Users/desmond/Desktop/projects/personal-task-board.",
-      "",
-      "Rules:",
-      "- Read AGENTS.md and docs/agent-operating-guide.md first.",
-      "- Update data/tasks.json only for this task. If a matching task already exists, update it instead of duplicating it.",
-      "- Choose sensible type, status, priority, energy, dates, references, questions, and evidence state.",
-      "- Keep nextAction empty if the next step is unknown.",
-      "- Run npm run validate before finishing.",
-      "",
-      "Rough task:",
-      roughTask
-    ].join("\n");
-  }
-
-  function updateAgentIntakePrompt() {
-    const prompt = $("#agentIntakePrompt");
-    if (!prompt) return "";
-    const rawText = $("#roughTaskInput")?.value || "";
-    prompt.value = agentIntakePrompt(rawText);
-    return prompt.value;
-  }
-
-  async function copyAgentIntakePrompt() {
-    const prompt = updateAgentIntakePrompt();
-    const promptField = $("#agentIntakePrompt");
-    try {
-      await navigator.clipboard.writeText(prompt);
-      state.console = "Agent message copied.";
-    } catch {
-      promptField.focus();
-      promptField.select();
-      state.console = "Clipboard unavailable. Prompt text selected for manual copy.";
-    }
-    renderSourceState();
-  }
-
-  function saveDetailEdits() {
-    const task = selectedTask();
-    if (!task || !validateDetailEdits()) return;
-    task.title = $("#detailTitleInput").value.trim();
-    task.description = $("#detailDescriptionInput").value.trim();
-    task.nextAction = $("#detailNextAction").value.trim();
-    task.questions = syncQuestions(task, $("#detailQuestions").value);
-    task.externalRefs = syncRefs(task.externalRefs || [], $("#detailRefs").value);
-    task.updatedAt = nowIso();
-    task.activity.unshift(activity(task.id, "edited", "Task content and context updated."));
-    markDirty(`Updated ${task.id}. Save or export update to persist.`, task.id);
-    renderAll();
-  }
-
-  function saveDetailStatus() {
-    const task = selectedTask();
-    if (!task) return;
-    const nextStatus = $("#detailStatus").value;
-    if (!validateStatusChange(task)) return;
-    if (!validateReviewCategories()) return;
-    task.status = nextStatus;
-    task.evidence.state = $("#detailEvidence").value;
-    task.evidence.summary = $("#detailEvidenceSummary").value.trim();
-    task.evidence.impact = $("#detailEvidenceImpact").value.trim();
-    task.evidence.reviewCategory = parseReviewCategories($("#detailEvidenceCategories").value);
-    task.evidence.links = syncRefs(task.evidence.links || [], $("#detailEvidenceLinks").value);
-    task.agentHelp.wanted = $("#detailAgentHelp").value === "true";
-    if (!task.agentHelp.wanted) task.agentHelp.reason = "";
-    if (task.agentHelp.wanted && !task.agentHelp.reason) task.agentHelp.reason = "Requested from detail page.";
-    task.updatedAt = nowIso();
-    task.activity.unshift(activity(task.id, "status_changed", `State saved: ${task.status}, evidence ${task.evidence.state}.`));
-    markDirty(`Saved state/evidence for ${task.id}. Save or export update to persist.`, task.id);
-    renderAll();
-  }
-
-  function markDone() {
-    const task = selectedTask();
-    if (!task) return;
-    if (!validateReviewCategories()) return;
-    task.status = "done";
-    task.evidence.state = $("#detailEvidence").value;
-    task.evidence.summary = $("#detailEvidenceSummary").value.trim();
-    task.evidence.impact = $("#detailEvidenceImpact").value.trim();
-    task.evidence.reviewCategory = parseReviewCategories($("#detailEvidenceCategories").value);
-    task.evidence.links = syncRefs(task.evidence.links || [], $("#detailEvidenceLinks").value);
-    task.agentHelp.wanted = $("#detailAgentHelp").value === "true";
-    task.updatedAt = nowIso();
-    task.activity.unshift(activity(task.id, "done", task.evidence.state === "missing" ? "Marked done; evidence still missing." : "Marked done."));
-    markDirty(`Marked ${task.id} done. Save or export update to persist.`, task.id);
-    renderAll();
-  }
-
-  async function loadBoardFromText(text, sourceLabel, handle = null) {
+  async function loadBoardFromText(text, sourceLabel) {
     const parsed = JSON.parse(text);
     if (!parsed || !Array.isArray(parsed.tasks)) throw new Error("Selected file does not look like a task board JSON file.");
     board = parsed;
     ensureBoardShape();
-    fileHandle = handle;
     fileLabel = sourceLabel;
-    state.sourceMode = handle ? `writable open: ${sourceLabel}` : `read-only loaded: ${sourceLabel}`;
-    state.dirty = false;
-    state.changedTaskIds.clear();
-    rememberBaseTaskState();
+    state.sourceMode = `loaded: ${sourceLabel}`;
     state.selectedId = selectedTask()?.id || "";
-    state.console = `Loaded ${sourceLabel}.`;
+    state.console = `Loaded ${sourceLabel} for viewing. Agents should edit the JSON source.`;
     renderAll();
   }
 
@@ -911,7 +613,7 @@
           multiple: false
         });
         const file = await handle.getFile();
-        await loadBoardFromText(await file.text(), file.name, handle);
+        await loadBoardFromText(await file.text(), file.name);
         return;
       }
       $("#tasksFileInput").click();
@@ -921,60 +623,6 @@
         renderAll();
       }
     }
-  }
-
-  async function saveBoard() {
-    try {
-      if (!fileHandle || !("createWritable" in fileHandle)) {
-        state.console = "Direct save needs a writable file handle. Click Open tasks.json first, or use Export update.";
-        renderAll();
-        return;
-      }
-      touchBoard("Saving...");
-      const writable = await fileHandle.createWritable();
-      await writable.write(stableJson(board));
-      await writable.close();
-      state.dirty = false;
-      state.changedTaskIds.clear();
-      rememberBaseTaskState();
-      state.console = `Saved ${fileLabel}.`;
-      renderAll();
-    } catch (error) {
-      state.console = `Save failed: ${error.message}. Export update instead.`;
-      renderAll();
-    }
-  }
-
-  function exportUpdate() {
-    if (state.changedTaskIds.size === 0) {
-      state.console = "No changed tasks to export.";
-      renderAll();
-      return;
-    }
-    touchBoard("Exporting changed tasks...");
-    const filename = `tasks-update-${timestampForFile()}.json`;
-    const changedTasks = getTasks().filter((task) => state.changedTaskIds.has(task.id));
-    const update = {
-      meta: {
-        updateFormatVersion: 1,
-        exportedAt: nowIso(),
-        sourceFile: fileLabel,
-        sourceBoardUpdatedAt: board.meta.updatedAt || "",
-        baseTaskUpdatedAt: Object.fromEntries(changedTasks.map((task) => [task.id, state.baseTaskUpdatedAt.get(task.id) || ""]))
-      },
-      taskUpdates: changedTasks
-    };
-    const blob = new Blob([stableJson(update)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    state.console = `Exported ${changedTasks.length} changed task(s) to ${filename}. Move it to updates/ then run npm run import-update -- updates/${filename}`;
-    renderAll();
   }
 
   async function handleFallbackFileInput(event) {
@@ -993,12 +641,6 @@
   async function handleAction(action) {
     if (action === "clear-filters") clearFilters();
     if (action === "open-tasks-file") await openTasksFile();
-    if (action === "save-board") await saveBoard();
-    if (action === "export-update") exportUpdate();
-    if (action === "save-detail-edits") saveDetailEdits();
-    if (action === "save-detail-status") saveDetailStatus();
-    if (action === "mark-done") markDone();
-    if (action === "copy-agent-intake") await copyAgentIntakePrompt();
   }
 
   function bindEvents() {
@@ -1070,31 +712,12 @@
       void handleFallbackFileInput(event);
     });
 
-    $("#roughTaskInput").addEventListener("input", () => {
-      updateAgentIntakePrompt();
-    });
-
-    $("#detailTitleInput").addEventListener("input", (event) => {
-      if (event.target.value.trim()) {
-        setDetailFieldError(event.target, "#detailTitleError", "");
-        $("#detailEditError").classList.remove("active");
-      }
-    });
-
-    updateAgentIntakePrompt();
-
     window.addEventListener("hashchange", () => {
       const nextRoute = window.location.hash.replace("#", "");
-      if (["board", "detail", "create", "sync"].includes(nextRoute)) {
+      if (["board", "detail", "sync"].includes(nextRoute)) {
         state.route = nextRoute;
         renderAll();
       }
-    });
-
-    window.addEventListener("beforeunload", (event) => {
-      if (!state.dirty) return;
-      event.preventDefault();
-      event.returnValue = "";
     });
   }
 
@@ -1103,7 +726,7 @@
     renderSelectOptions();
     bindEvents();
     const initialRoute = window.location.hash.replace("#", "");
-    if (["board", "detail", "create", "sync"].includes(initialRoute)) state.route = initialRoute;
+    if (["board", "detail", "sync"].includes(initialRoute)) state.route = initialRoute;
     renderAll();
   }
 
