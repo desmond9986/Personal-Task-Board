@@ -1518,3 +1518,19 @@ Second review follow-up:
 - keep onboarding examples mostly on the four primary commands
 - clarify that Claude slash commands require loading/installing the plugin, not merely mentioning the repo path
 - clarify that Codex skill names work only after the plugin is installed or otherwise available
+
+## 52. Script Hardening
+
+Date: 2026-06-20.
+
+Implemented script-level safeguards after plugin workflow review:
+
+- both `npm run validate` and `npm run import-update` refuse to run outside the real Personal Task Board repo shape
+- scripts reject obvious Claude/Codex plugin-cache paths
+- validation enforces disabled external sync policy: provider `unknown`, MCP/browser fallback off, and frequency `manual` or `disabled`
+- validation checks saved-view filter values against configured options
+- validation checks nested duplicate IDs/identities for questions, checklist, activity, externalRefs, evidence links, and agents
+- validation and import scan task/update strings for obvious secrets, tokens, raw logs, screenshots, customer/account identifiers, and private/internal hosts
+- import rejects duplicate incoming task IDs
+- import checks `meta.baseTaskUpdatedAt` for every existing-task update/delete in both `taskUpdates[]` and full `tasks[]`
+- import writes a backup only after validation and conflict checks pass

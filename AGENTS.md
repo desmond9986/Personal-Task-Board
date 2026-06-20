@@ -56,8 +56,10 @@ Import behavior:
 - new `id` adds a task
 - missing tasks are not deleted
 - deletion requires an update item with `deleted: true`
-- import creates a backup in `backups/`
-- import checks exported base timestamps and blocks stale overwrites
+- import creates a backup in `backups/` only after validation and conflict checks pass
+- import checks `meta.baseTaskUpdatedAt` for every existing task update/delete, including full `tasks[]` imports, and blocks stale overwrites
+- import rejects duplicate incoming task IDs
+- import rejects obvious secrets, raw logs, screenshots, and customer/account identifiers
 - use `--force` only when Desmond explicitly accepts overwriting conflicts
 
 ## UI Constraints

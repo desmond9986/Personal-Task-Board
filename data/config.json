@@ -11,8 +11,8 @@
   "sync": {
     "externalTicketSyncEnabled": false,
     "ticketSystemProvider": "unknown",
-    "mcpPreferred": true,
-    "browserFallback": true,
+    "mcpPreferred": false,
+    "browserFallback": false,
     "frequency": "manual"
   },
   "sensitiveDataPolicy": {

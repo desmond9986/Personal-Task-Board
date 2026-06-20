@@ -104,4 +104,6 @@ The HTML viewer no longer exports update files. `scripts/import-update.mjs` rema
 }
 ```
 
-`scripts/import-update.mjs` uses `baseTaskUpdatedAt` to prevent stale updates from overwriting newer task edits.
+`scripts/import-update.mjs` uses `baseTaskUpdatedAt` to prevent stale updates from overwriting newer task edits. Existing-task updates and deletes must include a matching `meta.baseTaskUpdatedAt[id]`; this applies to both `taskUpdates[]` and full `tasks[]` imports unless `--force` is explicitly used.
+
+The import script also rejects duplicate incoming task IDs and obvious sensitive data before it writes a backup or changes `data/tasks.json`.

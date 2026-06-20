@@ -153,12 +153,16 @@ npm run validate
 
 Validation checks:
 
+- correct project root, not Claude/Codex plugin cache
 - schema shape for `data/tasks.json`
 - schema shape for `data/config.json`
 - duplicate task IDs
-- duplicate question/activity IDs within a task
+- duplicate nested task IDs such as question, checklist, activity, externalRefs, evidence links, and agents
 - required config options and view IDs
+- saved-view filter values matching configured options
 - config options drifting away from schema enums
+- disabled external sync policy staying disabled
+- obvious secrets, raw logs, screenshots, and customer/account identifiers
 
 ## Important Files
 

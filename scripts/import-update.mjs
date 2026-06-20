@@ -1,14 +1,21 @@
 import Ajv from "ajv";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import {
+  assertProjectRoot,
+  collectSensitiveDataFindings,
+  formatAjvErrors,
+  readJson,
+  validateBoardIntegrity
+} from "./lib/hardening.mjs";
 
-const root = process.cwd();
-async function readJson(relativeOrAbsolutePath) {
-  const filePath = path.isAbsolute(relativeOrAbsolutePath)
-    ? relativeOrAbsolutePath
-    : path.join(root, relativeOrAbsolutePath);
-  return JSON.parse(await readFile(filePath, "utf8"));
+let root;
+try {
+  root = await assertProjectRoot(process.cwd());
+} catch (error) {
+  console.error(`Import refused: ${error.message}`);
+  process.exit(1);
 }
 
 function stableJson(value) {
@@ -33,41 +40,37 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-function formatAjvErrors(label, errors = []) {
-  return errors.map((error) => {
-    const location = error.instancePath || "/";
-    return `${label} ${location} ${error.message}`;
-  });
-}
-
-function validateCustomBoard(board) {
-  const errors = [];
-  const ids = new Set();
-
-  board.tasks.forEach((task, index) => {
-    if (ids.has(task.id)) errors.push(`tasks[${index}] duplicates task id "${task.id}"`);
-    ids.add(task.id);
-  });
-
-  return errors;
-}
-
 function updateTasksFromFile(updateFile) {
   if (Array.isArray(updateFile.taskUpdates)) {
     return {
       tasks: updateFile.taskUpdates,
-      partial: true,
+      label: "taskUpdates",
       baseTaskUpdatedAt: updateFile.meta?.baseTaskUpdatedAt || {}
     };
   }
   if (Array.isArray(updateFile.tasks)) {
     return {
       tasks: updateFile.tasks,
-      partial: false,
+      label: "tasks",
       baseTaskUpdatedAt: updateFile.meta?.baseTaskUpdatedAt || {}
     };
   }
-  throw new Error("Update file must contain a tasks[] or taskUpdates[] array.");
+  throw new Error("Update file must contain a taskUpdates[] array. Full tasks[] imports are accepted only when every existing task includes meta.baseTaskUpdatedAt.");
+}
+
+function validateIncomingIds(tasks, label) {
+  const errors = [];
+  const seen = new Map();
+  tasks.forEach((task, index) => {
+    const id = typeof task?.id === "string" ? task.id.trim() : "";
+    if (!id) return;
+    if (seen.has(id)) {
+      errors.push(`${label}[${index}] duplicates ${label}[${seen.get(id)}] id "${id}"`);
+      return;
+    }
+    seen.set(id, index);
+  });
+  return errors;
 }
 
 const updatePath = process.argv[2];
@@ -79,29 +82,39 @@ if (!updatePath) {
 }
 
 const ajv = new Ajv({ allErrors: true });
-const boardSchema = await readJson("schemas/task-board.schema.json");
+const boardSchema = await readJson(root, "schemas/task-board.schema.json");
 const validateBoard = ajv.compile(boardSchema);
 const validateTask = ajv.compile({
   ...boardSchema.$defs.task,
   $defs: boardSchema.$defs
 });
 
-const existing = await readJson("data/tasks.json");
+const existing = await readJson(root, "data/tasks.json");
 if (!validateBoard(existing)) {
   console.error("Existing data/tasks.json is invalid:");
   formatAjvErrors("data/tasks.json", validateBoard.errors).forEach((error) => console.error(`- ${error}`));
   process.exit(1);
 }
 
-const updateFile = await readJson(updatePath);
-const update = updateTasksFromFile(updateFile);
+const updateFile = await readJson(root, updatePath);
+let update;
+try {
+  update = updateTasksFromFile(updateFile);
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
+}
+
 const incomingTasks = update.tasks;
-const updateErrors = [];
+const updateErrors = [
+  ...validateIncomingIds(incomingTasks, update.label),
+  ...collectSensitiveDataFindings({ [update.label]: incomingTasks }, "update file")
+];
 
 incomingTasks.forEach((task, index) => {
   if (task && task.deleted === true && typeof task.id === "string" && task.id.trim()) return;
   if (!validateTask(task)) {
-    updateErrors.push(...formatAjvErrors(`update.tasks[${index}]`, validateTask.errors));
+    updateErrors.push(...formatAjvErrors(`${update.label}[${index}]`, validateTask.errors));
   }
 });
 
@@ -110,10 +123,6 @@ if (updateErrors.length > 0) {
   updateErrors.forEach((error) => console.error(`- ${error}`));
   process.exit(1);
 }
-
-await mkdir(path.join(root, "backups"), { recursive: true });
-const backupPath = path.join(root, "backups", `tasks-backup-${timestampForFile()}.json`);
-await writeFile(backupPath, stableJson(existing), "utf8");
 
 const byId = new Map(existing.tasks.map((task) => [task.id, task]));
 let added = 0;
@@ -124,11 +133,10 @@ const conflicts = [];
 incomingTasks.forEach((task) => {
   const existingTask = byId.get(task.id);
   if (!existingTask) return;
-  if (!update.partial) return;
 
   const baseUpdatedAt = update.baseTaskUpdatedAt[task.id];
   if (typeof baseUpdatedAt !== "string") {
-    conflicts.push(`${task.id}: update is missing base updatedAt for existing task`);
+    conflicts.push(`${task.id}: update is missing meta.baseTaskUpdatedAt for existing task`);
     return;
   }
   if ((existingTask.updatedAt || "") !== baseUpdatedAt) {
@@ -143,6 +151,11 @@ if (conflicts.length > 0 && !force) {
   process.exit(1);
 }
 
+if (conflicts.length > 0 && force) {
+  console.warn("Import conflicts ignored because --force was provided:");
+  conflicts.forEach((conflict) => console.warn(`- ${conflict}`));
+}
+
 incomingTasks.forEach((task) => {
   if (task.deleted === true) {
     if (byId.delete(task.id)) deleted += 1;
@@ -153,14 +166,15 @@ incomingTasks.forEach((task) => {
   byId.set(task.id, task);
 });
 
+const mergeTime = nowIso();
 const merged = {
   ...existing,
   meta: {
     ...existing.meta,
-    updatedAt: nowIso(),
+    updatedAt: mergeTime,
     syncState: {
       ...existing.meta.syncState,
-      lastSyncAt: nowIso(),
+      lastSyncAt: mergeTime,
       lastSyncSource: "import-update",
       lastSyncStatus: "success",
       lastSyncSummary: `Imported ${added} added, ${updated} updated, ${deleted} deleted from ${path.basename(updatePath)}.`
@@ -171,16 +185,20 @@ const merged = {
 
 const mergedErrors = [];
 if (!validateBoard(merged)) mergedErrors.push(...formatAjvErrors("merged", validateBoard.errors));
-mergedErrors.push(...validateCustomBoard(merged));
+mergedErrors.push(...validateBoardIntegrity(merged));
+mergedErrors.push(...collectSensitiveDataFindings(merged, "merged data"));
 
 if (mergedErrors.length > 0) {
-  console.error("Merged data is invalid; original data was backed up but not overwritten:");
+  console.error("Merged data is invalid; data/tasks.json was not changed:");
   mergedErrors.forEach((error) => console.error(`- ${error}`));
-  console.error(`Backup written to ${backupPath}`);
   process.exit(1);
 }
 
+await mkdir(path.join(root, "backups"), { recursive: true });
+const backupPath = path.join(root, "backups", `tasks-backup-${timestampForFile()}.json`);
+await writeFile(backupPath, stableJson(existing), "utf8");
 await writeFile(path.join(root, "data", "tasks.json"), stableJson(merged), "utf8");
 
 console.log(`Imported update: ${added} added, ${updated} updated, ${deleted} deleted.`);
+console.log(`Task board written: ${path.join(root, "data", "tasks.json")}`);
 console.log(`Backup written: ${backupPath}`);
